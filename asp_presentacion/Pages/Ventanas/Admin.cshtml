@@ -1,0 +1,1184 @@
+﻿@page
+@model asp_presentacion.Pages.Ventanas.AdminModel
+@{
+    ViewData["Title"] = "Panel Admin - BiblioTech";
+}
+
+@section Styles {
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-500: #667eea;
+            --primary-600: #5a67d8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+            --radius-2xl: 2rem;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @@-webkit-keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .admin-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.04));
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--gray-100);
+            border-radius: var(--radius-lg);
+            text-decoration: none;
+            color: var(--gray-700);
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: var(--transition);
+        }
+
+        .btn-back:hover {
+            background: var(--gray-200);
+            transform: translateX(-2px);
+        }
+
+        .title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+
+        .stats-grid-admin {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            padding: 1.5rem 2rem;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .stat-card-admin {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-number-admin {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-600);
+        }
+
+        .stat-label-admin {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tabs-container {
+            display: flex;
+            gap: 0.25rem;
+            padding: 1rem 2rem 0 2rem;
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: transparent;
+            border: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: var(--transition);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary-600);
+            background: var(--gray-50);
+        }
+
+        .tab-btn.active {
+            color: var(--primary-600);
+            background: var(--gray-50);
+            position: relative;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 2rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @@-webkit-keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--gray-50);
+            border-radius: var(--radius-xl);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--gray-700);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.625rem 1rem;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            font-size: 0.875rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        select.form-control {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
+        }
+
+        .btn-primary,
+        .btn-danger,
+        .btn-success,
+        .btn-warning {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: var(--radius-lg);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 0.875rem 1rem;
+            background: var(--gray-50);
+            color: var(--gray-600);
+            font-weight: 600;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .data-table td {
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .data-table tr:hover td {
+            background: var(--gray-50);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-icon {
+            padding: 0.25rem 0.5rem;
+            border: none;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .btn-edit {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-delete {
+            background: var(--error);
+            color: white;
+        }
+
+        .modal-modern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--radius-xl);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray-400);
+        }
+
+        .modal-close:hover {
+            color: var(--error);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 0.75rem 1.25rem;
+            background: var(--gray-900);
+            color: white;
+            border-radius: var(--radius-lg);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 1100;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+        }
+
+        .estado-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .estado-activo {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+        }
+
+        .estado-vencido {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #991b1b;
+        }
+
+        .estado-devuelto {
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+            color: #3730a3;
+        }
+
+        .estado-completado {
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+            color: #3730a3;
+        }
+
+        body.dark-theme .admin-card {
+            background: #1e293b;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-theme .admin-header {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(167, 139, 250, 0.08));
+            border-bottom-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-theme .btn-back {
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        body.dark-theme .stats-grid-admin {
+            background: #0f172a;
+            border-bottom-color: #334155;
+        }
+
+        body.dark-theme .stat-card-admin {
+            background: #1e293b;
+        }
+
+        body.dark-theme .stat-number-admin {
+            color: #a78bfa;
+        }
+
+        body.dark-theme .tabs-container {
+            background: #1e293b;
+            border-bottom-color: #334155;
+        }
+
+        body.dark-theme .tab-btn {
+            color: #94a3b8;
+        }
+
+        body.dark-theme .tab-btn:hover {
+            color: #c4b5fd;
+            background: #334155;
+        }
+
+        body.dark-theme .tab-btn.active {
+            color: #c4b5fd;
+            background: #334155;
+        }
+
+        body.dark-theme .form-grid {
+            background: #0f172a;
+        }
+
+        body.dark-theme .form-group label {
+            color: #cbd5e1;
+        }
+
+        body.dark-theme .form-control {
+            background: #1e293b;
+            border-color: #475569;
+            color: #f1f5f9;
+        }
+
+        body.dark-theme .data-table th {
+            background: #0f172a;
+            color: #94a3b8;
+            border-bottom-color: #334155;
+        }
+
+        body.dark-theme .data-table td {
+            color: #e2e8f0;
+            border-bottom-color: #334155;
+        }
+
+        body.dark-theme .data-table tr:hover td {
+            background: #0f172a;
+        }
+
+        body.dark-theme .modal-content {
+            background: #1e293b;
+        }
+
+        body.dark-theme .modal-header {
+            border-bottom-color: #334155;
+        }
+
+        @@media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .admin-header {
+                flex-direction: column;
+            }
+
+            .tabs-container {
+                padding: 0.5rem 1rem 0 1rem;
+            }
+
+            .tab-content {
+                padding: 1rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
+
+<div class="admin-container">
+    <div class="admin-card">
+        <div class="admin-header">
+            <div class="header-left">
+                <a href="/Index" class="btn-back"><i class="bi bi-arrow-left"></i> Inicio</a>
+                <h1 class="title"><i class="bi bi-shield-lock-fill"></i> Panel Administrativo</h1>
+            </div>
+            <div>
+                <form method="post" asp-page-handler="Logout" style="display:inline">
+                    <button type="submit" class="btn-danger" style="padding:0.5rem 1rem"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="stats-grid-admin">
+            <div class="stat-card-admin">
+                <div class="stat-number-admin">@Model.Libros.Count</div>
+                <div class="stat-label-admin">Libros</div>
+            </div>
+            <div class="stat-card-admin">
+                <div class="stat-number-admin">@Model.Autores.Count</div>
+                <div class="stat-label-admin">Autores</div>
+            </div>
+            <div class="stat-card-admin">
+                <div class="stat-number-admin">@Model.Prestamos.Count(p => p.Fecha_Entrega_Real == null)</div>
+                <div class="stat-label-admin">Préstamos Activos</div>
+            </div>
+            <div class="stat-card-admin">
+                <div class="stat-number-admin">@Model.Sanciones.Count(s => !s.Fecha_Fin.HasValue || s.Fecha_Fin.Value > DateTime.Now)</div>
+                <div class="stat-label-admin">Sanciones Activas</div>
+            </div>
+        </div>
+
+        <div class="tabs-container">
+            <button class="tab-btn active" data-tab="libros"><i class="bi bi-book"></i> Libros</button>
+            <button class="tab-btn" data-tab="autores"><i class="bi bi-pencil"></i> Autores</button>
+            <button class="tab-btn" data-tab="editoriales"><i class="bi bi-building"></i> Editoriales</button>
+            <button class="tab-btn" data-tab="temas"><i class="bi bi-tags"></i> Temas</button>
+            <button class="tab-btn" data-tab="existencias"><i class="bi bi-files"></i> Existencias</button>
+            <button class="tab-btn" data-tab="prestamos"><i class="bi bi-journal-arrow-up"></i> Préstamos</button>
+            <button class="tab-btn" data-tab="sanciones"><i class="bi bi-exclamation-triangle"></i> Sanciones</button>
+        </div>
+
+        <!-- TAB LIBROS -->
+        <div id="tabLibros" class="tab-content active">
+            <div class="form-grid">
+                <form method="post" asp-page-handler="AddLibro">
+                    <div class="form-group">
+                        <label>📖 Nuevo Libro</label>
+                        <input asp-for="NewLibro.Titulo" class="form-control" placeholder="Título" required />
+                        <input asp-for="NewLibro.Isbn" class="form-control" placeholder="ISBN" />
+                        <select asp-for="NewLibro.Editorial" class="form-control" required>
+                            <option value="">Seleccione Editorial</option>
+                            @foreach (var ed in Model.Editoriales)
+                            {
+                                <option value="@ed.Id">@ed.Nombre_Editorial</option>
+                            }
+                        </select>
+                        <input asp-for="NewLibro.Edicion" class="form-control" placeholder="Edición" />
+                        <input asp-for="NewLibro.Fecha_Lanzamiento" class="form-control" type="date" />
+                        <select asp-for="NewLibro.Pais" class="form-control">
+                            <option value="">Seleccione País</option>
+                            @foreach (var p in Model.Paises)
+                            {
+                                <option value="@p.Id">@p.Nombre_Pais</option>
+                            }
+                        </select>
+                        <select asp-for="NewLibro.Tipo" class="form-control">
+                            <option value="">Seleccione Tipo</option>
+                            @foreach (var t in Model.TiposLibro)
+                            {
+                                <option value="@t.Id">@t.Nombre_Tipo</option>
+                            }
+                        </select>
+                        <button type="submit" class="btn-primary" style="margin-top:0.5rem"><i class="bi bi-plus-lg"></i> Agregar Libro</button>
+                    </div>
+                </form>
+                <div>
+                    <div class="form-group">
+                        <label>🔗 Asignar Autor a Libro</label>
+                        <form method="post" asp-page-handler="AsignarAutorLibro" style="display:flex; flex-direction:column; gap:0.5rem">
+                            <select name="libroId" class="form-control" required>
+                                <option value="">Seleccione Libro</option>
+                                @foreach (var l in Model.Libros)
+                                {
+                                    <option value="@l.Id">@l.Titulo</option>
+                                }
+                            </select>
+                            <select name="autorId" class="form-control" required>
+                                <option value="">Seleccione Autor</option>
+                                @foreach (var a in Model.Autores)
+                                {
+                                    <option value="@a.Id">@a.Nombre</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn-success"><i class="bi bi-link"></i> Asignar Autor</button>
+                        </form>
+                    </div>
+                    <div class="form-group">
+                        <label>🏷️ Asignar Tema a Libro</label>
+                        <form method="post" asp-page-handler="AsignarTemaLibro" style="display:flex; flex-direction:column; gap:0.5rem">
+                            <select name="libroId" class="form-control" required>
+                                <option value="">Seleccione Libro</option>
+                                @foreach (var l in Model.Libros)
+                                {
+                                    <option value="@l.Id">@l.Titulo</option>
+                                }
+                            </select>
+                            <select name="temaId" class="form-control" required>
+                                <option value="">Seleccione Tema</option>
+                                @foreach (var t in Model.Temas)
+                                {
+                                    <option value="@t.Id">@t.Nombre_Tema</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn-success"><i class="bi bi-tag"></i> Asignar Tema</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Título</th>
+                            <th>ISBN</th>
+                            <th>Editorial</th>
+                            <th>Autores</th>
+                            <th>Temas</th>
+                            <th>Acciones</th>
+                        </thead>
+                    <tbody>
+                        @foreach (var l in Model.Libros)
+                        {
+                            var autoresLibro = Model.LibrosAutores.Where(la => la.Libro == l.Id).Select(la => Model.Autores.FirstOrDefault(a => a.Id == la.Autor)?.Nombre).Where(n => n != null);
+                            var temasLibro = Model.LibrosTemas.Where(lt => lt.Libro == l.Id).Select(lt => Model.Temas.FirstOrDefault(t => t.Id == lt.Tema)?.Nombre_Tema).Where(n => n != null);
+                            <tr>
+                                <td>@l.Id</td>
+                                <td>@l.Titulo</td>
+                                <td>@l.Isbn</td>
+                                <td>@Model.Editoriales.FirstOrDefault(e => e.Id == l.Editorial)?.Nombre_Editorial</td>
+                                <td>@string.Join(", ", autoresLibro)</td>
+                                <td>@string.Join(", ", temasLibro)</td>
+                                <td class="action-buttons">
+                                    <button class="btn-icon btn-edit" onclick="abrirModalEditarLibro(@l.Id, '@(l.Titulo?.Replace("'", "\\'") ?? "")', '@(l.Isbn?.Replace("'", "\\'") ?? "")', '@(l.Edicion?.Replace("'", "\\'") ?? "")', '@(l.Fecha_Lanzamiento?.ToString("yyyy-MM-dd") ?? "")')"><i class="bi bi-pencil"></i></button>
+                                    <form method="post" asp-page-handler="DeleteLibro" style="display:inline">
+                                        <input type="hidden" name="id" value="@l.Id" />
+                                        <button type="submit" class="btn-icon btn-delete" onclick="return confirm('¿Eliminar?')"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                 </td>
+                             </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB AUTORES -->
+        <div id="tabAutores" class="tab-content">
+            <div class="form-grid">
+                <form method="post" asp-page-handler="AddAutor">
+                    <div class="form-group">
+                        <label>✍️ Nuevo Autor</label>
+                        <input asp-for="NewAutor.Nombre" class="form-control" placeholder="Nombre" required />
+                        <input asp-for="NewAutor.Nacionalidad" class="form-control" placeholder="Nacionalidad" />
+                        <button type="submit" class="btn-primary" style="margin-top:0.5rem"><i class="bi bi-plus-lg"></i> Agregar Autor</button>
+                    </div>
+                </form>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Nacionalidad</th>
+                            <th>Libros</th>
+                            <th>Acciones</th>
+                        </thead>
+                    <tbody>
+                        @foreach (var a in Model.Autores)
+                        {
+                            var librosAutor = Model.LibrosAutores.Where(la => la.Autor == a.Id).Select(la => Model.Libros.FirstOrDefault(l => l.Id == la.Libro)?.Titulo).Where(n => n != null);
+                            <tr>
+                                <td>@a.Id</td>
+                                <td>@a.Nombre</td>
+                                <td>@a.Nacionalidad</td>
+                                <td>@string.Join(", ", librosAutor)</td>
+                                <td class="action-buttons">
+                                    <button class="btn-icon btn-edit" onclick="abrirModalEditarAutor(@a.Id, '@(a.Nombre?.Replace("'", "\\'") ?? "")', '@(a.Nacionalidad?.Replace("'", "\\'") ?? "")')"><i class="bi bi-pencil"></i></button>
+                                    <form method="post" asp-page-handler="DeleteAutor" style="display:inline">
+                                        <input type="hidden" name="id" value="@a.Id" />
+                                        <button type="submit" class="btn-icon btn-delete" onclick="return confirm('¿Eliminar?')"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                             </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB EDITORIALES -->
+        <div id="tabEditoriales" class="tab-content">
+            <div class="form-grid">
+                <form method="post" asp-page-handler="AddEditorial">
+                    <div class="form-group">
+                        <label>🏢 Nueva Editorial</label>
+                        <input asp-for="NewEditorial.Nombre_Editorial" class="form-control" placeholder="Nombre" required />
+                        <input asp-for="NewEditorial.Sitio_Web" class="form-control" placeholder="Sitio Web" />
+                        <button type="submit" class="btn-primary" style="margin-top:0.5rem"><i class="bi bi-plus-lg"></i> Agregar Editorial</button>
+                    </div>
+                </form>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Sitio Web</th>
+                            <th>Acciones</th>
+                        </thead>
+                    <tbody>
+                        @foreach (var e in Model.Editoriales)
+                        {
+                            <tr>
+                                <td>@e.Id</td>
+                                <td>@e.Nombre_Editorial</td>
+                                <td>@e.Sitio_Web</td>
+                                <td class="action-buttons">
+                                    <button class="btn-icon btn-edit" onclick="abrirModalEditarEditorial(@e.Id, '@(e.Nombre_Editorial?.Replace("'", "\\'") ?? "")', '@(e.Sitio_Web?.Replace("'", "\\'") ?? "")')"><i class="bi bi-pencil"></i></button>
+                                    <form method="post" asp-page-handler="DeleteEditorial" style="display:inline">
+                                        <input type="hidden" name="id" value="@e.Id" />
+                                        <button type="submit" class="btn-icon btn-delete" onclick="return confirm('¿Eliminar?')"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                             </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB TEMAS -->
+        <div id="tabTemas" class="tab-content">
+            <div class="form-grid">
+                <form method="post" asp-page-handler="AddTema">
+                    <div class="form-group">
+                        <label>🏷️ Nuevo Tema</label>
+                        <input asp-for="NewTema.Nombre_Tema" class="form-control" placeholder="Nombre" required />
+                        <input asp-for="NewTema.Area_Conocimiento" class="form-control" placeholder="Área de Conocimiento" />
+                        <button type="submit" class="btn-primary" style="margin-top:0.5rem"><i class="bi bi-plus-lg"></i> Agregar Tema</button>
+                    </div>
+                </form>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Área de Conocimiento</th>
+                            <th>Acciones</th>
+                        </thead>
+                    <tbody>
+                        @foreach (var t in Model.Temas)
+                        {
+                            <tr>
+                                <td>@t.Id</td>
+                                <td>@t.Nombre_Tema</td>
+                                <td>@t.Area_Conocimiento</td>
+                                <td class="action-buttons">
+                                    <button class="btn-icon btn-edit" onclick="abrirModalEditarTema(@t.Id, '@(t.Nombre_Tema?.Replace("'", "\\'") ?? "")', '@(t.Area_Conocimiento?.Replace("'", "\\'") ?? "")')"><i class="bi bi-pencil"></i></button>
+                                    <form method="post" asp-page-handler="DeleteTema" style="display:inline">
+                                        <input type="hidden" name="id" value="@t.Id" />
+                                        <button type="submit" class="btn-icon btn-delete" onclick="return confirm('¿Eliminar?')"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                             </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB EXISTENCIAS -->
+        <div id="tabExistencias" class="tab-content">
+            <div class="form-grid">
+                <form method="post" asp-page-handler="AddExistencia">
+                    <div class="form-group">
+                        <label>📦 Nueva Existencia</label>
+                        <select asp-for="NewExistencia.Libro" class="form-control" required>
+                            <option value="">Seleccione Libro</option>
+                            @foreach (var l in Model.Libros)
+                            {
+                                <option value="@l.Id">@l.Titulo</option>
+                            }
+                        </select>
+                        <input asp-for="NewExistencia.Ejemplares" class="form-control" placeholder="Número de Ejemplares" type="number" required />
+                        <button type="submit" class="btn-primary" style="margin-top:0.5rem"><i class="bi bi-plus-lg"></i> Agregar Existencia</button>
+                    </div>
+                </form>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Libro</th>
+                            <th>Ejemplares</th>
+                            <th>Acciones</th>
+                        </thead>
+                    <tbody>
+                        @foreach (var ex in Model.Existencias)
+                        {
+                            <tr>
+                                <td>@ex.Id</td>
+                                <td>@Model.Libros.FirstOrDefault(l => l.Id == ex.Libro)?.Titulo</td>
+                                <td>@ex.Ejemplares</td>
+                                <td class="action-buttons">
+                                    <button class="btn-icon btn-edit" onclick="abrirModalEditarExistencia(@ex.Id, @ex.Ejemplares)"><i class="bi bi-pencil"></i></button>
+                                    <form method="post" asp-page-handler="DeleteExistencia" style="display:inline">
+                                        <input type="hidden" name="id" value="@ex.Id" />
+                                        <button type="submit" class="btn-icon btn-delete" onclick="return confirm('¿Eliminar?')"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                             </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB PRÉSTAMOS -->
+        <div id="tabPrestamos" class="tab-content">
+            <div class="form-grid">
+                <form method="post" asp-page-handler="AddPrestamo">
+                    <div class="form-group">
+                        <label>📋 Registrar Préstamo</label>
+                        <select asp-for="NewPrestamo.Usuario" class="form-control" required>
+                            <option value="">Seleccione Usuario</option>
+                            @foreach (var u in Model.Usuarios)
+                            {
+                                <option value="@u.Id">@u.Nombre - @u.Documento</option>
+                            }
+                        </select>
+                        <select asp-for="NewPrestamo.Existencia" class="form-control" required>
+                            <option value="">Seleccione Ejemplar</option>
+                            @foreach (var ex in Model.Existencias.Where(e => e.Ejemplares > 0))
+                            {
+                                var libro = Model.Libros.FirstOrDefault(l => l.Id == ex.Libro);
+                                <option value="@ex.Id">@libro?.Titulo - @ex.Ejemplares disponibles</option>
+                            }
+                        </select>
+                        <select asp-for="NewPrestamo.Tipo_Prestamo" class="form-control">
+                            <option value="2">Préstamo a domicilio</option>
+                            <option value="1">Consulta en sala</option>
+                            <option value="3">Préstamo interbibliotecario</option>
+                            <option value="4">Reserva especial</option>
+                            <option value="5">Consulta restringida</option>
+                        </select>
+                        <button type="submit" class="btn-success" style="margin-top:0.5rem"><i class="bi bi-journal-plus"></i> Registrar Préstamo</button>
+                    </div>
+                </form>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuario</th>
+                            <th>Libro</th>
+                            <th>Fecha Préstamo</th>
+                            <th>Fecha Devolución</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </thead>
+                    <tbody>
+                        @foreach (var p in Model.Prestamos)
+                        {
+                            var existencia = Model.Existencias.FirstOrDefault(e => e.Id == p.Existencia);
+                            var libro = existencia != null ? Model.Libros.FirstOrDefault(l => l.Id == existencia.Libro) : null;
+                            var usuario = Model.Usuarios.FirstOrDefault(u => u.Id == p.Usuario);
+                            var estado = p.Fecha_Entrega_Real.HasValue ? "Devuelto" : (p.Fecha_Devolucion < DateTime.Now ? "Vencido" : "Activo");
+                            <tr>
+                                <td>@p.Id</td>
+                                <td>@usuario?.Nombre (@usuario?.Documento)</td>
+                                <td>@libro?.Titulo</td>
+                                <td>@p.Fecha_Prestamo.ToString("dd/MM/yyyy")</td>
+                                <td>@p.Fecha_Devolucion?.ToString("dd/MM/yyyy") ?? "Pendiente"</td>
+                                <td><span class="estado-badge estado-@estado.ToLower()">@estado</span></td>
+                                <td class="action-buttons">
+                                    @if (!p.Fecha_Entrega_Real.HasValue)
+                                    {
+                                        <button class="btn-icon btn-edit" onclick="registrarDevolucion(@p.Id)"><i class="bi bi-arrow-return-left"></i> Devolver</button>
+                                    }
+                                    <form method="post" asp-page-handler="DeletePrestamo" style="display:inline">
+                                        <input type="hidden" name="id" value="@p.Id" />
+                                        <button type="submit" class="btn-icon btn-delete" onclick="return confirm('¿Eliminar?')"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                             </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB SANCIONES -->
+        <div id="tabSanciones" class="tab-content">
+            <div class="form-grid">
+                <form method="post" asp-page-handler="AddSancion">
+                    <div class="form-group">
+                        <label>⚠️ Nueva Sanción</label>
+                        <select asp-for="NewSancion.Usuario" class="form-control" required>
+                            <option value="">Seleccione Usuario</option>
+                            @foreach (var u in Model.Usuarios)
+                            {
+                                <option value="@u.Id">@u.Nombre - @u.Documento</option>
+                            }
+                        </select>
+                        <input asp-for="NewSancion.Descripcion" class="form-control" placeholder="Descripción" required />
+                        <input asp-for="NewSancion.Fecha_Inicio" class="form-control" type="date" />
+                        <input asp-for="NewSancion.Fecha_Fin" class="form-control" type="date" placeholder="Fecha Fin (opcional)" />
+                        <button type="submit" class="btn-warning" style="margin-top:0.5rem"><i class="bi bi-exclamation-triangle"></i> Aplicar Sanción</button>
+                    </div>
+                </form>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuario</th>
+                            <th>Descripción</th>
+                            <th>Inicio</th>
+                            <th>Fin</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </thead>
+                    <tbody>
+                        @foreach (var s in Model.Sanciones)
+                        {
+                            var usuario = Model.Usuarios.FirstOrDefault(u => u.Id == s.Usuario);
+                            var activa = !s.Fecha_Fin.HasValue || s.Fecha_Fin.Value > DateTime.Now;
+                            <tr>
+                                <td>@s.Id</td>
+                                <td>@usuario?.Nombre (@usuario?.Documento)</td>
+                                <td>@s.Descripcion</td>
+                                <td>@s.Fecha_Inicio.ToString("dd/MM/yyyy")</td>
+                                <td>@s.Fecha_Fin?.ToString("dd/MM/yyyy") ?? "Indefinida"</td>
+                                <td><span class="estado-badge @(activa ? "estado-activo" : "estado-completado")">@(activa ? "Activa" : "Finalizada")</span></td>
+                                <td class="action-buttons">
+                                    <form method="post" asp-page-handler="DeleteSancion" style="display:inline">
+                                        <input type="hidden" name="id" value="@s.Id" />
+                                        <button type="submit" class="btn-icon btn-delete" onclick="return confirm('¿Eliminar?')"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                             </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODALES PARA EDITAR -->
+<div id="modalEditar" class="modal-modern" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitulo">Editar</h3>
+            <button class="modal-close" onclick="cerrarModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+@section Scripts {
+    <script>
+        function abrirModalEditarLibro(id, titulo, isbn, edicion, fechaLanzamiento) {
+            document.getElementById('modalTitulo').innerHTML = '<i class="bi bi-pencil"></i> Editar Libro';
+            document.getElementById('modalBody').innerHTML = `
+                <form method="post" asp-page-handler="EditLibro">
+                    <input type="hidden" name="id" value="${id}" />
+                    <div class="form-group"><label>Título</label><input type="text" name="titulo" class="form-control" value="${titulo}" required /></div>
+                    <div class="form-group"><label>ISBN</label><input type="text" name="isbn" class="form-control" value="${isbn}" /></div>
+                    <div class="form-group"><label>Edición</label><input type="text" name="edicion" class="form-control" value="${edicion}" /></div>
+                    <div class="form-group"><label>Fecha Lanzamiento</label><input type="date" name="fechaLanzamiento" class="form-control" value="${fechaLanzamiento}" /></div>
+                    <button type="submit" class="btn-primary" style="width:100%"><i class="bi bi-save"></i> Guardar Cambios</button>
+                </form>
+            `;
+            document.getElementById('modalEditar').style.display = 'flex';
+        }
+
+        function abrirModalEditarAutor(id, nombre, nacionalidad) {
+            document.getElementById('modalTitulo').innerHTML = '<i class="bi bi-pencil"></i> Editar Autor';
+            document.getElementById('modalBody').innerHTML = `
+                <form method="post" asp-page-handler="EditAutor">
+                    <input type="hidden" name="id" value="${id}" />
+                    <div class="form-group"><label>Nombre</label><input type="text" name="nombre" class="form-control" value="${nombre}" required /></div>
+                    <div class="form-group"><label>Nacionalidad</label><input type="text" name="nacionalidad" class="form-control" value="${nacionalidad}" /></div>
+                    <button type="submit" class="btn-primary" style="width:100%"><i class="bi bi-save"></i> Guardar Cambios</button>
+                </form>
+            `;
+            document.getElementById('modalEditar').style.display = 'flex';
+        }
+
+        function abrirModalEditarEditorial(id, nombre, sitioWeb) {
+            document.getElementById('modalTitulo').innerHTML = '<i class="bi bi-pencil"></i> Editar Editorial';
+            document.getElementById('modalBody').innerHTML = `
+                <form method="post" asp-page-handler="EditEditorial">
+                    <input type="hidden" name="id" value="${id}" />
+                    <div class="form-group"><label>Nombre</label><input type="text" name="nombre" class="form-control" value="${nombre}" required /></div>
+                    <div class="form-group"><label>Sitio Web</label><input type="text" name="sitioWeb" class="form-control" value="${sitioWeb}" /></div>
+                    <button type="submit" class="btn-primary" style="width:100%"><i class="bi bi-save"></i> Guardar Cambios</button>
+                </form>
+            `;
+            document.getElementById('modalEditar').style.display = 'flex';
+        }
+
+        function abrirModalEditarTema(id, nombre, area) {
+            document.getElementById('modalTitulo').innerHTML = '<i class="bi bi-pencil"></i> Editar Tema';
+            document.getElementById('modalBody').innerHTML = `
+                <form method="post" asp-page-handler="EditTema">
+                    <input type="hidden" name="id" value="${id}" />
+                    <div class="form-group"><label>Nombre</label><input type="text" name="nombre" class="form-control" value="${nombre}" required /></div>
+                    <div class="form-group"><label>Área de Conocimiento</label><input type="text" name="area" class="form-control" value="${area}" /></div>
+                    <button type="submit" class="btn-primary" style="width:100%"><i class="bi bi-save"></i> Guardar Cambios</button>
+                </form>
+            `;
+            document.getElementById('modalEditar').style.display = 'flex';
+        }
+
+        function abrirModalEditarExistencia(id, ejemplares) {
+            document.getElementById('modalTitulo').innerHTML = '<i class="bi bi-pencil"></i> Editar Existencia';
+            document.getElementById('modalBody').innerHTML = `
+                <form method="post" asp-page-handler="EditExistencia">
+                    <input type="hidden" name="id" value="${id}" />
+                    <div class="form-group"><label>Ejemplares</label><input type="number" name="ejemplares" class="form-control" value="${ejemplares}" required /></div>
+                    <button type="submit" class="btn-primary" style="width:100%"><i class="bi bi-save"></i> Guardar Cambios</button>
+                </form>
+            `;
+            document.getElementById('modalEditar').style.display = 'flex';
+        }
+
+        function registrarDevolucion(prestamoId) {
+            if (confirm('¿Registrar devolución de este préstamo?')) {
+                var form = document.createElement('form');
+                form.method = 'post';
+                form.action = '?handler=RegistrarDevolucion';
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'id';
+                input.value = prestamoId;
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalEditar').style.display = 'none';
+        }
+
+        document.querySelectorAll('.tab-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var tab = this.dataset.tab;
+                document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+                document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+                this.classList.add('active');
+                document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+            });
+        });
+
+        var toast = document.getElementById('toast');
+        @if (TempData["OK"] != null)
+        {
+            <text>
+            toast.textContent = '@TempData["OK"]';
+            toast.className = 'toast show';
+            setTimeout(function() { toast.className = 'toast'; }, 3000);
+            </text>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <text>
+            toast.textContent = '@TempData["Error"]';
+            toast.className = 'toast show error';
+            setTimeout(function() { toast.className = 'toast'; }, 5000);
+            </text>
+        }
+    </script>
+}

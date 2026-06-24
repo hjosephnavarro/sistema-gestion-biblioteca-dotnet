@@ -1,0 +1,149 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>@ViewData["Title"] - BiblioTech</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/asp_presentacion.styles.css" asp-append-version="true" />
+
+    @RenderSection("Styles", required: false)
+</head>
+
+<body>
+    <header class="modern-header">
+        <div class="container-fluid px-4">
+            <div class="header-inner">
+                <div class="brand">
+                    <div class="brand-icon">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                    </div>
+                    <div class="brand-text">
+                        <span class="brand-title">BiblioTech</span>
+                        <span class="brand-subtitle">Biblioteca Digital</span>
+                    </div>
+                </div>
+
+                <nav class="main-nav-links">
+                    <a asp-page="/Index" class="nav-link">
+                        <i class="bi bi-house-door-fill"></i>
+                        <span>Inicio</span>
+                    </a>
+                    
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        @if (User.IsInRole("admin"))
+                        {
+                            <a asp-page="/Dashboard" class="nav-link">
+                                <i class="bi bi-speedometer2"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            <a asp-page="/Catalogos/Libros" class="nav-link">
+                                <i class="bi bi-book"></i>
+                                <span>Catálogo</span>
+                            </a>
+                            <a asp-page="/Catalogos/Ejemplares" class="nav-link">
+                                <i class="bi bi-files"></i>
+                                <span>Ejemplares</span>
+                            </a>
+                            <a asp-page="/Usuarios/Index" class="nav-link">
+                                <i class="bi bi-people"></i>
+                                <span>Usuarios</span>
+                            </a>
+                            <a asp-page="/Prestamos/Index" class="nav-link">
+                                <i class="bi bi-journal-arrow-up"></i>
+                                <span>Préstamos</span>
+                            </a>
+                            <a asp-page="/Reportes/Index" class="nav-link">
+                                <i class="bi bi-graph-up"></i>
+                                <span>Reportes</span>
+                            </a>
+                            <a asp-page="/Configuracion/Index" class="nav-link">
+                                <i class="bi bi-gear"></i>
+                                <span>Configuración</span>
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-page="/Ventanas/Cliente" class="nav-link">
+                                <i class="bi bi-collection"></i>
+                                <span>Mi Catálogo</span>
+                            </a>
+                            <a asp-page="/Ventanas/MisPrestamos" class="nav-link">
+                                <i class="bi bi-journal-bookmark-fill"></i>
+                                <span>Mis Préstamos</span>
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <a asp-page="/Ventanas/Login" class="nav-link">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                            <span>Acceder</span>
+                        </a>
+                    }
+                </nav>
+
+                <div class="header-actions">
+                    <div class="theme-toggle" id="themeToggle">
+                        <i class="bi bi-moon-stars"></i>
+                    </div>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <div class="user-greeting">
+                            <i class="bi bi-person-circle"></i>
+                            <span>@User.Identity.Name</span>
+                            <form method="post" asp-page="/Ventanas/Login" asp-page-handler="Logout" style="display:inline">
+                                <button type="submit" class="btn-logout-icon" title="Cerrar sesión">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="user-greeting">
+                            <i class="bi bi-person-circle"></i>
+                            <span>Invitado</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="modern-main">
+        <div class="container-fluid px-4">
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="modern-footer">
+        <div class="container-fluid px-4">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                    <span>BiblioTech</span>
+                </div>
+                <div class="footer-links">
+                    <a href="#"><i class="bi bi-info-circle"></i> Acerca de</a>
+                    <a href="#"><i class="bi bi-envelope"></i> Contacto</a>
+                    <a href="#"><i class="bi bi-shield-check"></i> Políticas</a>
+                </div>
+                <div class="footer-copyright">
+                    <p>© 2025 - Todos los derechos reservados</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

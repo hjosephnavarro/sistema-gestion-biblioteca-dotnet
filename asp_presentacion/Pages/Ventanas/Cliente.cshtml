@@ -1,0 +1,680 @@
+﻿@page
+@model asp_presentacion.Pages.Ventanas.ClienteModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Mi Biblioteca - BiblioTech";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/Cliente.css" />
+    <style>
+        /* Mejoras adicionales para la experiencia de usuario */
+        .prestamos-activos-section {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .prestamos-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .prestamos-table th,
+        .prestamos-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .prestamos-table th {
+            color: #9aa4b2;
+            font-weight: 600;
+        }
+        .badge-prestado {
+            background: linear-gradient(90deg,#f59e0b,#d97706);
+            color: #fff;
+        }
+        .badge-vencido {
+            background: linear-gradient(90deg,#ef4444,#dc2626);
+            color: #fff;
+        }
+        .btn-detalle {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #c7d2fe;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+        }
+        .btn-detalle:hover {
+            background: rgba(255,255,255,0.1);
+        }
+    </style>
+}
+
+<div class="user-container">
+    <!-- HEADER MODERNO CON INFO DEL USUARIO -->
+    <header class="user-header">
+        <div class="user-info">
+            <div class="user-avatar">
+                <i class="bi bi-person-circle"></i>
+            </div>
+            <div class="user-details">
+                <h1 class="title">¡Bienvenido, @Model.Usuario?.Nombre! 👋</h1>
+                <div class="user-meta">
+                    <span class="meta-item">
+                        <i class="bi bi-card-id"></i> Documento: <strong>@Model.Usuario?.Documento</strong>
+                    </span>
+                    <span class="meta-item">
+                        <i class="bi bi-envelope"></i> Correo: <strong>@Model.Usuario?.Correo</strong>
+                    </span>
+                    <span class="meta-item">
+                        <i class="bi bi-person-badge"></i> Rol: <strong>@(Model.Usuario?.Rol ?? "Usuario")</strong>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <button type="button" class="btn btn-outline" id="verMisPrestamosBtn">
+                <i class="bi bi-journal-bookmark-fill"></i>
+                Mis préstamos
+            </button>
+            <form method="post" asp-page-handler="Logout" style="display:inline">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-box-arrow-right"></i>
+                    Cerrar sesión
+                </button>
+            </form>
+        </div>
+    </header>
+
+    <!-- SECCIÓN DE ESTADÍSTICAS RÁPIDAS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📚</div>
+            <div class="stat-info">
+                <div class="stat-value">@(Model.Books?.Count ?? 0)</div>
+                <div class="stat-label">Libros disponibles</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📖</div>
+            <div class="stat-info">
+                <div class="stat-value" id="availableBooksCount">
+                    @(Model.Books?.Count(b => b.Available > 0) ?? 0)
+                </div>
+                <div class="stat-label">Con disponibilidad</div>
+            </div>
+        </div>
+        <div class="stat-card" id="prestamosActivosCard" style="cursor:pointer">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-info">
+                <div class="stat-value" id="prestamosActivosCount">0</div>
+                <div class="stat-label">Préstamos activos</div>
+            </div>
+        </div>
+    </div>
+
+    <hr />
+
+    <!-- SECCIÓN DE BÚSQUEDA MODERNA -->
+    <div class="search-section">
+        <div class="search-container">
+            <div class="search-form">
+                <i class="bi bi-search search-icon"></i>
+                <input type="search" 
+                       id="searchInput" 
+                       placeholder="Buscar por título o ISBN..." 
+                       autocomplete="off">
+                <button type="button" class="btn-clear" id="clearSearch" style="display: none;">
+                    <i class="bi bi-x-circle-fill"></i>
+                </button>
+            </div>
+            <div class="search-stats" id="searchStats"></div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN DE LIBROS -->
+    <section class="books-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-journal-bookmark-fill"></i>
+                Catálogo de Libros
+            </h2>
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="table" id="tableViewBtn">
+                    <i class="bi bi-table"></i>
+                </button>
+                <button class="view-btn" data-view="grid" id="gridViewBtn">
+                    <i class="bi bi-grid-3x3-gap-fill"></i>
+                </button>
+            </div>
+        </div>
+
+        @if (Model.Books == null || !Model.Books.Any())
+        {
+            <div class="empty-state">
+                <i class="bi bi-emoji-frown"></i>
+                <p>No hay libros disponibles actualmente.</p>
+            </div>
+        }
+        else
+        {
+            <!-- VISTA DE TABLA -->
+            <div class="table-view" id="tableView">
+                <div class="table-wrap">
+                    <table id="booksTable" class="books-table">
+                        <thead>
+                            <tr>
+                                <th>Título</th>
+                                <th>ISBN</th>
+                                <th>Disponibilidad</th>
+                                <th style="width:180px">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var b in Model.Books)
+                            {
+                                <tr data-title="@((b.Libro.Titulo ?? "").ToLowerInvariant())"
+                                    data-isbn="@((b.Libro.Isbn ?? "").ToLowerInvariant())"
+                                    data-available="@b.Available"
+                                    data-libroid="@b.Libro.Id">
+                                    <td data-label="Título">
+                                        <div class="book-title-cell">
+                                            <i class="bi bi-book"></i>
+                                            @b.Libro.Titulo
+                                        </div>
+                                    </td>
+                                    <td data-label="ISBN" class="mono">@b.Libro.Isbn</td>
+                                    <td data-label="Disponibilidad">
+                                        @if (b.Available > 0)
+                                        {
+                                            <span class="badge available">
+                                                <i class="bi bi-check-circle-fill"></i>
+                                                @b.Available disponible(s)
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge out">
+                                                <i class="bi bi-x-circle-fill"></i>
+                                                Sin stock
+                                            </span>
+                                        }
+                                        <small class="total-copies"> / @b.Total ejemplares</small>
+                                    </td>
+                                    <td data-label="Acción">
+                                        <button type="button"
+                                                class="btn-prestar"
+                                                data-libroid="@b.Libro.Id"
+                                                data-titulo="@b.Libro.Titulo"
+                                        @(b.Available == 0 ? "disabled" : "")>
+                                            <i class="bi bi-journal-plus"></i>
+                                            Solicitar préstamo
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VISTA DE GRID (CARDS) -->
+            <div class="grid-view" id="gridView" style="display: none;">
+                <div class="books-grid">
+                    @foreach (var b in Model.Books)
+                    {
+                        <div class="book-card" 
+                             data-title="@((b.Libro.Titulo ?? "").ToLowerInvariant())"
+                             data-isbn="@((b.Libro.Isbn ?? "").ToLowerInvariant())"
+                             data-available="@b.Available"
+                             data-libroid="@b.Libro.Id">
+                            <div class="book-card-icon">
+                                <i class="bi bi-journal-bookmark-fill"></i>
+                            </div>
+                            <div class="book-card-content">
+                                <h3 class="book-card-title">@b.Libro.Titulo</h3>
+                                <div class="book-card-meta">
+                                    <span class="book-isbn">
+                                        <i class="bi bi-upc-scan"></i> @b.Libro.Isbn
+                                    </span>
+                                </div>
+                                <div class="book-card-status">
+                                    @if (b.Available > 0)
+                                    {
+                                        <span class="badge available">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                            @b.Available disponibles
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge out">
+                                            <i class="bi bi-x-circle-fill"></i>
+                                            Sin stock
+                                        </span>
+                                    }
+                                </div>
+                                <button type="button"
+                                        class="btn-prestar-card"
+                                        data-libroid="@b.Libro.Id"
+                                        data-titulo="@b.Libro.Titulo"
+                                @(b.Available == 0 ? "disabled" : "")>
+                                    <i class="bi bi-journal-plus"></i>
+                                    Solicitar
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </section>
+
+    <!-- SECCIÓN DE PRÉSTAMOS ACTIVOS (INICIALMENTE OCULTA) -->
+    <section class="prestamos-activos-section" id="prestamosActivosSection" style="display: none;">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-clock-history"></i>
+                Mis Préstamos Activos
+            </h2>
+            <button type="button" class="btn-cerrar-seccion" id="cerrarPrestamosBtn">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="table-wrap">
+            <table class="prestamos-table" id="prestamosActivosTable">
+                <thead>
+                    <tr>
+                        <th>Libro</th>
+                        <th>Fecha Préstamo</th>
+                        <th>Fecha Devolución</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="prestamosActivosBody">
+                    <tr><td colspan="5" class="text-center">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- MODAL PARA DETALLE DE PRÉSTAMO -->
+    <div id="modalDetallePrestamo" class="modal-modern" style="display: none;">
+        <div class="modal-modern-content">
+            <div class="modal-modern-header">
+                <h3>Detalle del Préstamo</h3>
+                <button class="modal-close" onclick="document.getElementById('modalDetallePrestamo').style.display='none'">&times;</button>
+            </div>
+            <div class="modal-modern-body" id="modalDetalleBody">
+                <!-- Contenido dinámico -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST PARA NOTIFICACIONES -->
+    <div id="toast" class="toast" aria-live="polite" role="status"></div>
+
+    <!-- FORMULARIO ANTIFORGERY OCULTO -->
+    <form id="antiforgeryForm" style="display:none">
+        @Html.AntiForgeryToken()
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const toastEl = document.getElementById('toast');
+            const searchInput = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearch');
+            const searchStats = document.getElementById('searchStats');
+            const tableView = document.getElementById('tableView');
+            const gridView = document.getElementById('gridView');
+            const tableViewBtn = document.getElementById('tableViewBtn');
+            const gridViewBtn = document.getElementById('gridViewBtn');
+            const prestamosActivosSection = document.getElementById('prestamosActivosSection');
+            const prestamosActivosBody = document.getElementById('prestamosActivosBody');
+            const prestamosActivosCountSpan = document.getElementById('prestamosActivosCount');
+            const prestamosActivosCard = document.getElementById('prestamosActivosCard');
+            const verMisPrestamosBtn = document.getElementById('verMisPrestamosBtn');
+            const cerrarPrestamosBtn = document.getElementById('cerrarPrestamosBtn');
+            const modal = document.getElementById('modalDetallePrestamo');
+
+            let prestamosActivos = [];
+
+            function getAntiForgeryToken() {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                return tokenInput ? tokenInput.value : '';
+            }
+
+            function showToast(text, isError) {
+                if (!toastEl) { alert(text); return; }
+                toastEl.textContent = text;
+                toastEl.className = 'toast show' + (isError ? ' error' : '');
+                setTimeout(() => toastEl.className = 'toast', 3500);
+            }
+
+            function updateAvailableCount() {
+                const visibleRows = document.querySelectorAll('#booksTable tbody tr:not([style*="display: none"])');
+                const availableCount = Array.from(visibleRows).filter(row => {
+                    const available = parseInt(row.dataset.available || '0');
+                    return available > 0;
+                }).length;
+                const availableStatsSpan = document.getElementById('availableBooksCount');
+                if (availableStatsSpan) {
+                    availableStatsSpan.textContent = availableCount;
+                }
+            }
+
+            async function cargarPrestamosActivos() {
+                try {
+                    const token = getAntiForgeryToken();
+                    const resp = await fetch('?handler=PrestamosActivosAjax', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        }
+                    });
+                    if (!resp.ok) throw new Error('Error al cargar préstamos');
+                    const data = await resp.json();
+                    prestamosActivos = data.prestamos || [];
+                    if (prestamosActivosCountSpan) {
+                        prestamosActivosCountSpan.textContent = prestamosActivos.length;
+                    }
+                    return prestamosActivos;
+                } catch (err) {
+                    console.error(err);
+                    return [];
+                }
+            }
+
+            function renderizarPrestamosActivos() {
+                if (!prestamosActivosBody) return;
+                if (prestamosActivos.length === 0) {
+                    prestamosActivosBody.innerHTML = '<tr><td colspan="5" class="text-center">No tienes préstamos activos</td></tr>';
+                    return;
+                }
+                const hoy = new Date();
+                prestamosActivosBody.innerHTML = prestamosActivos.map(p => {
+                    const fechaDevolucion = new Date(p.fechaDevolucion);
+                    const estado = fechaDevolucion < hoy ? 'vencido' : 'activo';
+                    const estadoBadge = estado === 'vencido' 
+                        ? '<span class="badge vencido"><i class="bi bi-exclamation-triangle-fill"></i> Vencido</span>'
+                        : '<span class="badge prestado"><i class="bi bi-clock-fill"></i> Activo</span>';
+                    return `
+                        <tr data-prestamoid="${p.id}">
+                            <td><strong>${p.libroTitulo}</strong><br><small>ISBN: ${p.isbn || 'N/A'}</small></td>
+                            <td>${new Date(p.fechaPrestamo).toLocaleDateString()}</td>
+                            <td>${new Date(p.fechaDevolucion).toLocaleDateString()}</td>
+                            <td>${estadoBadge}</td>
+                            <td>
+                                <button class="btn-detalle" data-prestamoid="${p.id}">
+                                    <i class="bi bi-eye"></i> Detalle
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                document.querySelectorAll('.btn-detalle').forEach(btn => {
+                    btn.addEventListener('click', () => mostrarDetallePrestamo(btn.dataset.prestamoid));
+                });
+            }
+
+            function mostrarDetallePrestamo(prestamoId) {
+                const prestamo = prestamosActivos.find(p => p.id == prestamoId);
+                if (!prestamo) return;
+                const modalBody = document.getElementById('modalDetalleBody');
+                if (modalBody) {
+                    modalBody.innerHTML = `
+                        <div class="detalle-prestamo">
+                            <p><strong>Libro:</strong> ${prestamo.libroTitulo}</p>
+                            <p><strong>ISBN:</strong> ${prestamo.isbn || 'N/A'}</p>
+                            <p><strong>Fecha Préstamo:</strong> ${new Date(prestamo.fechaPrestamo).toLocaleDateString()}</p>
+                            <p><strong>Fecha Devolución Planeada:</strong> ${new Date(prestamo.fechaDevolucion).toLocaleDateString()}</p>
+                            <p><strong>Tipo Préstamo:</strong> ${prestamo.tipoPrestamo || 'Estándar'}</p>
+                            <hr>
+                            <p><strong>Instrucciones:</strong> Por favor devuelve el libro en la fecha indicada para evitar sanciones.</p>
+                        </div>
+                    `;
+                }
+                if (modal) modal.style.display = 'flex';
+            }
+
+            async function mostrarSeccionPrestamos() {
+                await cargarPrestamosActivos();
+                renderizarPrestamosActivos();
+                if (prestamosActivosSection) {
+                    prestamosActivosSection.style.display = 'block';
+                    prestamosActivosSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+
+            function ocultarSeccionPrestamos() {
+                if (prestamosActivosSection) {
+                    prestamosActivosSection.style.display = 'none';
+                }
+            }
+
+            function filterBooks() {
+                const searchTerm = searchInput?.value.toLowerCase().trim() || '';
+                const tableRows = document.querySelectorAll('#booksTable tbody tr');
+                const gridCards = document.querySelectorAll('.book-card');
+                let matchCount = 0;
+
+                tableRows.forEach(row => {
+                    const title = row.getAttribute('data-title') || '';
+                    const isbn = row.getAttribute('data-isbn') || '';
+                    const matches = searchTerm === '' || title.includes(searchTerm) || isbn.includes(searchTerm);
+                    row.style.display = matches ? '' : 'none';
+                    if (matches) matchCount++;
+                });
+
+                gridCards.forEach(card => {
+                    const title = card.getAttribute('data-title') || '';
+                    const isbn = card.getAttribute('data-isbn') || '';
+                    const matches = searchTerm === '' || title.includes(searchTerm) || isbn.includes(searchTerm);
+                    card.style.display = matches ? '' : 'none';
+                });
+
+                if (clearBtn) {
+                    clearBtn.style.display = searchTerm ? 'flex' : 'none';
+                }
+
+                if (searchStats) {
+                    searchStats.textContent = searchTerm === '' ? '' : `${matchCount} resultado${matchCount !== 1 ? 's' : ''}`;
+                }
+
+                updateAvailableCount();
+            }
+
+            function clearSearch() {
+                if (searchInput) {
+                    searchInput.value = '';
+                    filterBooks();
+                    searchInput.focus();
+                }
+            }
+
+            function setView(view) {
+                if (view === 'table') {
+                    tableView.style.display = 'block';
+                    gridView.style.display = 'none';
+                    tableViewBtn.classList.add('active');
+                    gridViewBtn.classList.remove('active');
+                    localStorage.setItem('bibliotechView', 'table');
+                } else {
+                    tableView.style.display = 'none';
+                    gridView.style.display = 'block';
+                    tableViewBtn.classList.remove('active');
+                    gridViewBtn.classList.add('active');
+                    localStorage.setItem('bibliotechView', 'grid');
+                }
+                filterBooks();
+            }
+
+            async function postSolicitar(libroId, button, titulo) {
+                const token = getAntiForgeryToken();
+                const originalText = button.innerHTML;
+                
+                try {
+                    button.disabled = true;
+                    button.innerHTML = '<i class="bi bi-hourglass-split"></i> Procesando...';
+                    
+                    const resp = await fetch('?handler=SolicitarPrestamoAjax', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify({ libroId: libroId })
+                    });
+
+                    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                    const data = await resp.json();
+
+                    if (data.success) {
+                        showToast(`✅ ¡Solicitud exitosa! El libro "${titulo}" ha sido reservado.`, false);
+                        
+                        const allButtons = document.querySelectorAll(`.btn-prestar[data-libroid="${libroId}"], .btn-prestar-card[data-libroid="${libroId}"]`);
+                        const allRows = document.querySelectorAll(`tr[data-libroid="${libroId}"]`);
+                        const allCards = document.querySelectorAll(`.book-card[data-libroid="${libroId}"]`);
+                        
+                        allRows.forEach(row => {
+                            const available = data.available;
+                            row.dataset.available = available;
+                            const badge = row.querySelector('.badge');
+                            const totalSpan = row.querySelector('.total-copies');
+                            
+                            if (available > 0) {
+                                if (badge) {
+                                    badge.className = 'badge available';
+                                    badge.innerHTML = `<i class="bi bi-check-circle-fill"></i> ${available} disponible(s)`;
+                                }
+                            } else {
+                                if (badge) {
+                                    badge.className = 'badge out';
+                                    badge.innerHTML = '<i class="bi bi-x-circle-fill"></i> Sin stock';
+                                }
+                            }
+                            
+                            const buttonInRow = row.querySelector('.btn-prestar');
+                            if (buttonInRow) buttonInRow.disabled = available <= 0;
+                        });
+                        
+                        allCards.forEach(card => {
+                            const available = data.available;
+                            card.dataset.available = available;
+                            const badge = card.querySelector('.badge');
+                            
+                            if (available > 0) {
+                                if (badge) {
+                                    badge.className = 'badge available';
+                                    badge.innerHTML = `<i class="bi bi-check-circle-fill"></i> ${available} disponibles`;
+                                }
+                            } else {
+                                if (badge) {
+                                    badge.className = 'badge out';
+                                    badge.innerHTML = '<i class="bi bi-x-circle-fill"></i> Sin stock';
+                                }
+                            }
+                            
+                            const buttonInCard = card.querySelector('.btn-prestar-card');
+                            if (buttonInCard) buttonInCard.disabled = available <= 0;
+                        });
+                        
+                        updateAvailableCount();
+                        await cargarPrestamosActivos();
+                        if (prestamosActivosSection && prestamosActivosSection.style.display === 'block') {
+                            renderizarPrestamosActivos();
+                        }
+                        if (prestamosActivosCountSpan) {
+                            prestamosActivosCountSpan.textContent = prestamosActivos.length;
+                        }
+                    } else {
+                        showToast(data.message || '❌ No se pudo completar la solicitud', true);
+                        button.disabled = false;
+                        button.innerHTML = originalText;
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast('❌ Error de conexión. Intenta nuevamente.', true);
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                }
+            }
+
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-prestar');
+                if (btn && !btn.disabled) {
+                    e.preventDefault();
+                    const libId = parseInt(btn.dataset.libroid);
+                    const titulo = btn.dataset.titulo || 'este libro';
+                    if (!libId) return;
+                    if (confirm(`¿Deseas solicitar el libro "${titulo}"?`)) {
+                        postSolicitar(libId, btn, titulo);
+                    }
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-prestar-card');
+                if (btn && !btn.disabled) {
+                    e.preventDefault();
+                    const libId = parseInt(btn.dataset.libroid);
+                    const titulo = btn.dataset.titulo || 'este libro';
+                    if (!libId) return;
+                    if (confirm(`¿Deseas solicitar el libro "${titulo}"?`)) {
+                        postSolicitar(libId, btn, titulo);
+                    }
+                }
+            });
+
+            if (searchInput) {
+                searchInput.addEventListener('input', filterBooks);
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') filterBooks();
+                });
+            }
+            
+            if (clearBtn) {
+                clearBtn.addEventListener('click', clearSearch);
+            }
+
+            if (tableViewBtn) {
+                tableViewBtn.addEventListener('click', () => setView('table'));
+            }
+            if (gridViewBtn) {
+                gridViewBtn.addEventListener('click', () => setView('grid'));
+            }
+
+            if (prestamosActivosCard) {
+                prestamosActivosCard.addEventListener('click', mostrarSeccionPrestamos);
+            }
+            if (verMisPrestamosBtn) {
+                verMisPrestamosBtn.addEventListener('click', mostrarSeccionPrestamos);
+            }
+            if (cerrarPrestamosBtn) {
+                cerrarPrestamosBtn.addEventListener('click', ocultarSeccionPrestamos);
+            }
+
+            window.onclick = function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            }
+
+            const savedView = localStorage.getItem('bibliotechView');
+            if (savedView === 'grid') {
+                setView('grid');
+            } else {
+                setView('table');
+            }
+
+            updateAvailableCount();
+            cargarPrestamosActivos();
+        })();
+    </script>
+}

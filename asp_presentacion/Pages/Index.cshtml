@@ -1,0 +1,190 @@
+﻿@page
+@model asp_presentacion.Pages.IndexModel
+@{
+    ViewData["Title"] = "Inicio - BiblioTech";
+}
+
+@section Styles {
+    <style>
+        .hero-stats .stat-card-simple {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 1rem;
+            transition: transform 0.2s;
+        }
+        .hero-stats .stat-card-simple:hover {
+            transform: translateY(-4px);
+        }
+        .btn-link-modern[href*="Login"] {
+            pointer-events: auto;
+        }
+    </style>
+}
+
+<!-- HERO SECTION MODERNO CON ESTADÍSTICAS -->
+<section class="hero-modern mb-5">
+    <div class="hero-content">
+        <div class="hero-badge">
+            <i class="bi bi-stars"></i> Biblioteca del futuro
+        </div>
+        <h1 class="hero-title">
+            Bienvenido a <span class="gradient-text">BiblioTech</span>
+        </h1>
+        <p class="hero-description">
+            Descubre un mundo de conocimiento y literatura al alcance de tu mano. 
+            Miles de títulos, autores destacados y servicios digitales.
+        </p>
+        
+        <div class="hero-stats row g-3 mt-4">
+            <div class="col-md-4">
+                <div class="stat-card-simple text-center">
+                    <div class="stat-number">@(Model.ListaLibros?.Count ?? 0)</div>
+                    <div class="stat-label">Libros disponibles</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card-simple text-center">
+                    <div class="stat-number">@(Model.ListaAutores?.Count ?? 0)</div>
+                    <div class="stat-label">Autores registrados</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card-simple text-center">
+                    <div class="stat-number">@(Model.ListaUsuarios?.Count ?? 0)</div>
+                    <div class="stat-label">Usuarios activos</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="hero-decoration">
+        <div class="floating-shape shape-1"></div>
+        <div class="floating-shape shape-2"></div>
+        <div class="floating-shape shape-3"></div>
+    </div>
+</section>
+
+<!-- SECCIÓN: LIBROS DESTACADOS -->
+<section class="section-modern mb-5">
+    <div class="section-header">
+        <div>
+            <span class="section-badge">Colección</span>
+            <h2 class="section-title">Libros destacados</h2>
+            <p class="section-subtitle">Los títulos más populares de nuestra biblioteca</p>
+        </div>
+        <div class="section-action">
+            <a asp-page="/Ventanas/Login" class="btn-link-modern">Ver todos <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @if (Model.ListaLibros != null && Model.ListaLibros.Any())
+        {
+            foreach (var libro in Model.ListaLibros.Take(6))
+            {
+                var autorNombre = "Autor desconocido";
+                if (libro.LibrosAutores != null && libro.LibrosAutores.Any())
+                {
+                    autorNombre = libro.LibrosAutores.Select(a => a?.AutorNavigation?.Nombre)
+                        .FirstOrDefault(n => !string.IsNullOrEmpty(n)) ?? autorNombre;
+                }
+                <div class="col-md-6 col-lg-4">
+                    <div class="modern-card book-card-modern">
+                        <div class="card-icon-badge">
+                            <i class="bi bi-book-half"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">@libro.Titulo</h3>
+                            <div class="card-meta">
+                                <span class="meta-author">
+                                    <i class="bi bi-pencil-fill"></i> @autorNombre
+                                </span>
+                                <span class="meta-isbn">
+                                    <i class="bi bi-upc-scan"></i> @libro.Isbn
+                                </span>
+                            </div>
+                            <div class="card-footer-actions">
+                                <span class="badge-modern available">Disponible</span>
+                                <a asp-page="/Ventanas/Login" class="btn-icon-modern" title="Más información">
+                                    <i class="bi bi-arrow-right-circle"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <div class="empty-state">
+                    <i class="bi bi-emoji-frown" style="font-size: 3rem; opacity: 0.5;"></i>
+                    <p class="mt-3">No hay libros disponibles en este momento.</p>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- SECCIÓN: AUTORES DESTACADOS -->
+<section class="section-modern mb-5">
+    <div class="section-header">
+        <div>
+            <span class="section-badge">Talento literario</span>
+            <h2 class="section-title">Autores destacados</h2>
+            <p class="section-subtitle">Los escritores que inspiran a nuestra comunidad</p>
+        </div>
+        <div class="section-action">
+            <a asp-page="/Ventanas/Login" class="btn-link-modern">Explorar autores <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @if (Model.ListaAutores != null && Model.ListaAutores.Any())
+        {
+            foreach (var autor in Model.ListaAutores.Take(6))
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="modern-card author-card-modern">
+                        <div class="author-avatar-modern">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                        <div class="card-content text-center">
+                            <h3 class="card-title">@autor.Nombre</h3>
+                            <div class="author-details">
+                                <span class="author-nationality">
+                                    <i class="bi bi-geo-alt-fill"></i> @(autor.Nacionalidad ?? "Internacional")
+                                </span>
+                                <span class="author-books-count">
+                                    <i class="bi bi-journal-bookmark-fill"></i> @(autor.LibrosAutores?.Count ?? 0) obras
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <div class="empty-state">
+                    <i class="bi bi-emoji-frown" style="font-size: 3rem; opacity: 0.5;"></i>
+                    <p class="mt-3">No hay autores registrados actualmente.</p>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- LLAMADA A LA ACCIÓN -->
+<section class="cta-section-modern mb-4">
+    <div class="cta-content">
+        <div class="cta-text">
+            <h3>¿Listo para comenzar tu viaje literario?</h3>
+            <p>Accede a nuestro catálogo completo y disfruta de la mejor experiencia de préstamo digital.</p>
+        </div>
+        <a asp-page="/Ventanas/Login" class="btn-cta-modern">
+            Comenzar ahora <i class="bi bi-arrow-right-short"></i>
+        </a>
+    </div>
+</section>

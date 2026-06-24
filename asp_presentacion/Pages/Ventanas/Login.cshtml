@@ -1,0 +1,364 @@
+﻿@page
+@model asp_presentacion.Pages.Ventanas.LoginModel
+@{
+    ViewData["Title"] = "Login - BiblioTech";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/Login.css" />
+}
+
+<div class="page-center">
+    <div class="login-container">
+        <div class="form-card">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                </div>
+                <h1>BiblioTech</h1>
+                <p>Tu biblioteca digital</p>
+            </div>
+
+            <form method="post" id="loginForm">
+                @if (Model.UsuarioLogueado == null)
+                {
+                    <div id="loginSection">
+                        <h3 class="form-title">Iniciar Sesión</h3>
+
+                        <div class="form-group">
+                            <label class="form-label">Tipo de Usuario</label>
+                            <div class="role-selector">
+                                <div class="role-option-card @(Model.LoginRol == "usuario" ? "active" : "")" data-role="usuario" onclick="selectRoleLogin('usuario')">
+                                    <div class="role-option-icon">👤</div>
+                                    <div class="role-option-text">Usuario</div>
+                                </div>
+                                <div class="role-option-card @(Model.LoginRol == "admin" ? "active" : "")" data-role="admin" onclick="selectRoleLogin('admin')">
+                                    <div class="role-option-icon">👨‍💼</div>
+                                    <div class="role-option-text">Administrador</div>
+                                </div>
+                            </div>
+                            <input type="radio" asp-for="LoginRol" id="rolUsuario" value="usuario" style="display:none" />
+                            <input type="radio" asp-for="LoginRol" id="rolAdmin" value="admin" style="display:none" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Correo Electrónico</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">
+                                    <i class="bi bi-envelope"></i>
+                                </span>
+                                <input class="form-input" asp-for="LoginCorreo" placeholder="usuario@ejemplo.com" autocomplete="email" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Contraseña</label>
+                            <div class="input-wrapper password-wrapper">
+                                <span class="input-icon">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password" id="passwordInput" class="form-input" asp-for="LoginPassword" placeholder="Ingresa tu contraseña" autocomplete="current-password" />
+                                <button type="button" class="toggle-password" onclick="togglePassword()">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" asp-page-handler="Login" class="btn-login">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                            Ingresar
+                        </button>
+
+                        <p class="switch-text">
+                            ¿No tienes cuenta? 
+                            <a href="javascript:void(0)" onclick="showRegister()">Crear cuenta</a>
+                        </p>
+
+                        @if (ViewData["Mensaje"] != null)
+                        {
+                            <div class="muted">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                @ViewData["Mensaje"]
+                            </div>
+                        }
+                    </div>
+
+                    <div id="registerSection" style="display:none;">
+                        <h3 class="form-title">Crear nueva cuenta</h3>
+
+                        <div class="form-group">
+                            <label class="form-label">Nombre Completo</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">
+                                    <i class="bi bi-person"></i>
+                                </span>
+                                <input class="form-input" asp-for="NuevoNombre" placeholder="Tu nombre completo" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Número de Documento</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">
+                                    <i class="bi bi-card-id"></i>
+                                </span>
+                                <input class="form-input" asp-for="NuevoDocumento" placeholder="Documento de identidad" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Dirección</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">
+                                    <i class="bi bi-geo-alt"></i>
+                                </span>
+                                <input class="form-input" asp-for="NuevoDireccion" placeholder="Tu dirección" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Teléfono</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">
+                                    <i class="bi bi-telephone"></i>
+                                </span>
+                                <input class="form-input" asp-for="NuevoTelefono" placeholder="Número de contacto" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Fecha de Nacimiento</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">
+                                    <i class="bi bi-calendar"></i>
+                                </span>
+                                <input class="form-input" asp-for="NuevoFechaNacimiento" type="date" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Correo Electrónico</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">
+                                    <i class="bi bi-envelope"></i>
+                                </span>
+                                <input class="form-input" asp-for="NuevoCorreo" placeholder="tu@email.com" autocomplete="email" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Contraseña</label>
+                            <div class="input-wrapper password-wrapper">
+                                <span class="input-icon">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password" id="registerPasswordInput" class="form-input" asp-for="NuevoPassword" placeholder="Crea una contraseña segura" />
+                                <button type="button" class="toggle-password" onclick="toggleRegisterPassword()">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Confirmar Contraseña</label>
+                            <div class="input-wrapper password-wrapper">
+                                <span class="input-icon">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password" id="confirmPasswordInput" class="form-input" placeholder="Confirma tu contraseña" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Rol</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">
+                                    <i class="bi bi-gear"></i>
+                                </span>
+                                <select class="form-input" asp-for="NuevoRol" onchange="toggleAdminKey()">
+                                    <option value="">Selecciona un rol...</option>
+                                    <option value="usuario">Usuario</option>
+                                    <option value="admin">Administrador</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="claveAdminDiv" style="display:none;">
+                            <label class="form-label">Clave Secreta de Administrador</label>
+                            <div class="input-wrapper password-wrapper">
+                                <span class="input-icon">
+                                    <i class="bi bi-key"></i>
+                                </span>
+                                <input type="password" class="form-input" asp-for="ClaveAdmin" placeholder="Clave de administrador" />
+                            </div>
+                        </div>
+
+                        <button type="submit" asp-page-handler="CrearUsuario" class="btn-login" id="registerBtn">
+                            <i class="bi bi-person-plus"></i>
+                            Crear Usuario
+                        </button>
+
+                        <p class="switch-text">
+                            ¿Ya tienes cuenta? 
+                            <a href="javascript:void(0)" onclick="showLogin()">Iniciar Sesión</a>
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <div>
+                        <h3 class="form-title">Sesión Activa</h3>
+                        <div class="logged-info">
+                            <div class="logged-avatar">
+                                <i class="bi bi-person-circle"></i>
+                            </div>
+                            <p>Bienvenido, <strong>@Model.UsuarioLogueado.Nombre</strong></p>
+                            <p style="font-size: 0.875rem; margin-top: 0.5rem;">
+                                <span><i class="bi bi-envelope"></i> @Model.UsuarioLogueado.Correo</span>
+                            </p>
+                            <p style="font-size: 0.875rem;">
+                                <span><i class="bi bi-person-badge"></i> @(Model.UsuarioLogueado.Rol ?? "Usuario")</span>
+                            </p>
+                        </div>
+                        <button type="submit" asp-page-handler="Logout" class="btn-login">
+                            <i class="bi bi-box-arrow-right"></i>
+                            Cerrar Sesión
+                        </button>
+                    </div>
+                }
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function applySavedTheme() {
+            const savedTheme = localStorage.getItem('bibliotechTheme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+            } else if (savedTheme === 'light') {
+                document.body.classList.remove('dark-theme');
+            }
+        }
+
+        function syncThemeWithLayout() {
+            const savedTheme = localStorage.getItem('bibliotechTheme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+            } else if (savedTheme === 'light') {
+                document.body.classList.remove('dark-theme');
+            }
+        }
+
+        function listenToThemeChanges() {
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'bibliotechTheme') {
+                    if (e.newValue === 'dark') {
+                        document.body.classList.add('dark-theme');
+                    } else if (e.newValue === 'light') {
+                        document.body.classList.remove('dark-theme');
+                    }
+                }
+            });
+        }
+
+        function togglePassword() {
+            const input = document.getElementById("passwordInput");
+            const icon = document.querySelector("#loginSection .toggle-password i");
+            if (!input) return;
+            
+            if (input.type === "password") {
+                input.type = "text";
+                if (icon) {
+                    icon.classList.remove("bi-eye");
+                    icon.classList.add("bi-eye-slash");
+                }
+            } else {
+                input.type = "password";
+                if (icon) {
+                    icon.classList.remove("bi-eye-slash");
+                    icon.classList.add("bi-eye");
+                }
+            }
+        }
+
+        function toggleRegisterPassword() {
+            const input = document.getElementById("registerPasswordInput");
+            const icon = document.querySelector("#registerSection .toggle-password i");
+            if (!input) return;
+            
+            if (input.type === "password") {
+                input.type = "text";
+                if (icon) {
+                    icon.classList.remove("bi-eye");
+                    icon.classList.add("bi-eye-slash");
+                }
+            } else {
+                input.type = "password";
+                if (icon) {
+                    icon.classList.remove("bi-eye-slash");
+                    icon.classList.add("bi-eye");
+                }
+            }
+        }
+        
+        function validatePasswords() {
+            const password = document.getElementById("registerPasswordInput");
+            const confirm = document.getElementById("confirmPasswordInput");
+            
+            if (password && confirm && password.value !== confirm.value) {
+                alert("Las contraseñas no coinciden");
+                return false;
+            }
+            return true;
+        }
+
+        function showRegister() {
+            document.getElementById("loginSection").style.display = "none";
+            document.getElementById("registerSection").style.display = "block";
+            applySavedTheme();
+        }
+        
+        function showLogin() {
+            document.getElementById("registerSection").style.display = "none";
+            document.getElementById("loginSection").style.display = "block";
+            applySavedTheme();
+        }
+
+        function toggleAdminKey() {
+            const sel = document.querySelector('select[name="NuevoRol"]');
+            const role = sel ? sel.value : '';
+            const claveDiv = document.getElementById("claveAdminDiv");
+            if (claveDiv) {
+                claveDiv.style.display = role === "admin" ? "block" : "none";
+            }
+        }
+
+        function selectRoleLogin(rol) {
+            const radio = document.getElementById("rol" + rol.charAt(0).toUpperCase() + rol.slice(1));
+            if (radio) radio.checked = true;
+            
+            document.querySelectorAll('.role-option-card').forEach(card => {
+                if (card.getAttribute('data-role') === rol) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+        }
+        
+        const registerBtn = document.getElementById('registerBtn');
+        if (registerBtn) {
+            registerBtn.addEventListener('click', function(e) {
+                if (!validatePasswords()) {
+                    e.preventDefault();
+                }
+            });
+        }
+        
+        applySavedTheme();
+        syncThemeWithLayout();
+        listenToThemeChanges();
+    </script>
+}
