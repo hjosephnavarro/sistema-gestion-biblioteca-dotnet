@@ -7,51 +7,12 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/Cliente.css" />
-    <style>
-        /* Mejoras adicionales para la experiencia de usuario */
-        .prestamos-activos-section {
-            margin-top: 2rem;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        .prestamos-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .prestamos-table th,
-        .prestamos-table td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .prestamos-table th {
-            color: #9aa4b2;
-            font-weight: 600;
-        }
-        .badge-prestado {
-            background: linear-gradient(90deg,#f59e0b,#d97706);
-            color: #fff;
-        }
-        .badge-vencido {
-            background: linear-gradient(90deg,#ef4444,#dc2626);
-            color: #fff;
-        }
-        .btn-detalle {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #c7d2fe;
-            padding: 0.25rem 0.75rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-        }
-        .btn-detalle:hover {
-            background: rgba(255,255,255,0.1);
-        }
-    </style>
+    <link rel="stylesheet" href="~/css/Cliente-prestamos.css" />
+    <link rel="stylesheet" href="~/css/Cliente-sanciones.css" />
 }
 
-<div class="user-container">
-    <!-- HEADER MODERNO CON INFO DEL USUARIO -->
+<div class="user-container" id="app">
+    <!-- HEADER -->
     <header class="user-header">
         <div class="user-info">
             <div class="user-avatar">
@@ -73,7 +34,13 @@
             </div>
         </div>
 
+
         <div class="header-actions">
+            <button type="button" class="btn btn-outline btn-sanciones" id="verSancionesBtn">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                Mis sanciones
+                <span class="sanciones-count" id="sancionesCountHeader">0</span>
+            </button>
             <button type="button" class="btn btn-outline" id="verMisPrestamosBtn">
                 <i class="bi bi-journal-bookmark-fill"></i>
                 Mis préstamos
@@ -87,7 +54,7 @@
         </div>
     </header>
 
-    <!-- SECCIÓN DE ESTADÍSTICAS RÁPIDAS -->
+    <!-- ESTADÍSTICAS -->
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-icon">📚</div>
@@ -116,7 +83,7 @@
 
     <hr />
 
-    <!-- SECCIÓN DE BÚSQUEDA MODERNA -->
+    <!-- BÚSQUEDA -->
     <div class="search-section">
         <div class="search-container">
             <div class="search-form">
@@ -133,7 +100,7 @@
         </div>
     </div>
 
-    <!-- SECCIÓN DE LIBROS -->
+    <!-- CATÁLOGO DE LIBROS -->
     <section class="books-section">
         <div class="section-header">
             <h2 class="section-title">
@@ -159,7 +126,7 @@
         }
         else
         {
-            <!-- VISTA DE TABLA -->
+            <!-- VISTA TABLA -->
             <div class="table-view" id="tableView">
                 <div class="table-wrap">
                     <table id="booksTable" class="books-table">
@@ -219,7 +186,7 @@
                 </div>
             </div>
 
-            <!-- VISTA DE GRID (CARDS) -->
+            <!-- VISTA GRID -->
             <div class="grid-view" id="gridView" style="display: none;">
                 <div class="books-grid">
                     @foreach (var b in Model.Books)
@@ -271,7 +238,7 @@
         }
     </section>
 
-    <!-- SECCIÓN DE PRÉSTAMOS ACTIVOS (INICIALMENTE OCULTA) -->
+    <!-- PRÉSTAMOS ACTIVOS (OCULTO) -->
     <section class="prestamos-activos-section" id="prestamosActivosSection" style="display: none;">
         <div class="section-header">
             <h2 class="section-title">
@@ -300,381 +267,56 @@
         </div>
     </section>
 
-    <!-- MODAL PARA DETALLE DE PRÉSTAMO -->
+    <!-- SANCIONES (OCULTO) -->
+    <section class="sanciones-section" id="sancionesSection" style="display: none;">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                Mis Sanciones
+            </h2>
+            <button type="button" class="btn-cerrar-seccion" id="cerrarSancionesBtn">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="table-wrap">
+            <table class="sanciones-table" id="sancionesTable">
+                <thead>
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Fecha Inicio</th>
+                        <th>Fecha Fin</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="sancionesBody">
+                    <tr><td colspan="4" class="text-center">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- MODALES -->
     <div id="modalDetallePrestamo" class="modal-modern" style="display: none;">
         <div class="modal-modern-content">
             <div class="modal-modern-header">
                 <h3>Detalle del Préstamo</h3>
                 <button class="modal-close" onclick="document.getElementById('modalDetallePrestamo').style.display='none'">&times;</button>
             </div>
-            <div class="modal-modern-body" id="modalDetalleBody">
-                <!-- Contenido dinámico -->
-            </div>
+            <div class="modal-modern-body" id="modalDetalleBody"></div>
         </div>
     </div>
 
-    <!-- TOAST PARA NOTIFICACIONES -->
+    <!-- TOAST -->
     <div id="toast" class="toast" aria-live="polite" role="status"></div>
 
-    <!-- FORMULARIO ANTIFORGERY OCULTO -->
+    <!-- FORMULARIO ANTIFORGERY -->
     <form id="antiforgeryForm" style="display:none">
         @Html.AntiForgeryToken()
     </form>
 </div>
 
 @section Scripts {
-    <script>
-        (function () {
-            const toastEl = document.getElementById('toast');
-            const searchInput = document.getElementById('searchInput');
-            const clearBtn = document.getElementById('clearSearch');
-            const searchStats = document.getElementById('searchStats');
-            const tableView = document.getElementById('tableView');
-            const gridView = document.getElementById('gridView');
-            const tableViewBtn = document.getElementById('tableViewBtn');
-            const gridViewBtn = document.getElementById('gridViewBtn');
-            const prestamosActivosSection = document.getElementById('prestamosActivosSection');
-            const prestamosActivosBody = document.getElementById('prestamosActivosBody');
-            const prestamosActivosCountSpan = document.getElementById('prestamosActivosCount');
-            const prestamosActivosCard = document.getElementById('prestamosActivosCard');
-            const verMisPrestamosBtn = document.getElementById('verMisPrestamosBtn');
-            const cerrarPrestamosBtn = document.getElementById('cerrarPrestamosBtn');
-            const modal = document.getElementById('modalDetallePrestamo');
-
-            let prestamosActivos = [];
-
-            function getAntiForgeryToken() {
-                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-                return tokenInput ? tokenInput.value : '';
-            }
-
-            function showToast(text, isError) {
-                if (!toastEl) { alert(text); return; }
-                toastEl.textContent = text;
-                toastEl.className = 'toast show' + (isError ? ' error' : '');
-                setTimeout(() => toastEl.className = 'toast', 3500);
-            }
-
-            function updateAvailableCount() {
-                const visibleRows = document.querySelectorAll('#booksTable tbody tr:not([style*="display: none"])');
-                const availableCount = Array.from(visibleRows).filter(row => {
-                    const available = parseInt(row.dataset.available || '0');
-                    return available > 0;
-                }).length;
-                const availableStatsSpan = document.getElementById('availableBooksCount');
-                if (availableStatsSpan) {
-                    availableStatsSpan.textContent = availableCount;
-                }
-            }
-
-            async function cargarPrestamosActivos() {
-                try {
-                    const token = getAntiForgeryToken();
-                    const resp = await fetch('?handler=PrestamosActivosAjax', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'RequestVerificationToken': token
-                        }
-                    });
-                    if (!resp.ok) throw new Error('Error al cargar préstamos');
-                    const data = await resp.json();
-                    prestamosActivos = data.prestamos || [];
-                    if (prestamosActivosCountSpan) {
-                        prestamosActivosCountSpan.textContent = prestamosActivos.length;
-                    }
-                    return prestamosActivos;
-                } catch (err) {
-                    console.error(err);
-                    return [];
-                }
-            }
-
-            function renderizarPrestamosActivos() {
-                if (!prestamosActivosBody) return;
-                if (prestamosActivos.length === 0) {
-                    prestamosActivosBody.innerHTML = '<tr><td colspan="5" class="text-center">No tienes préstamos activos</td></tr>';
-                    return;
-                }
-                const hoy = new Date();
-                prestamosActivosBody.innerHTML = prestamosActivos.map(p => {
-                    const fechaDevolucion = new Date(p.fechaDevolucion);
-                    const estado = fechaDevolucion < hoy ? 'vencido' : 'activo';
-                    const estadoBadge = estado === 'vencido' 
-                        ? '<span class="badge vencido"><i class="bi bi-exclamation-triangle-fill"></i> Vencido</span>'
-                        : '<span class="badge prestado"><i class="bi bi-clock-fill"></i> Activo</span>';
-                    return `
-                        <tr data-prestamoid="${p.id}">
-                            <td><strong>${p.libroTitulo}</strong><br><small>ISBN: ${p.isbn || 'N/A'}</small></td>
-                            <td>${new Date(p.fechaPrestamo).toLocaleDateString()}</td>
-                            <td>${new Date(p.fechaDevolucion).toLocaleDateString()}</td>
-                            <td>${estadoBadge}</td>
-                            <td>
-                                <button class="btn-detalle" data-prestamoid="${p.id}">
-                                    <i class="bi bi-eye"></i> Detalle
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-                
-                document.querySelectorAll('.btn-detalle').forEach(btn => {
-                    btn.addEventListener('click', () => mostrarDetallePrestamo(btn.dataset.prestamoid));
-                });
-            }
-
-            function mostrarDetallePrestamo(prestamoId) {
-                const prestamo = prestamosActivos.find(p => p.id == prestamoId);
-                if (!prestamo) return;
-                const modalBody = document.getElementById('modalDetalleBody');
-                if (modalBody) {
-                    modalBody.innerHTML = `
-                        <div class="detalle-prestamo">
-                            <p><strong>Libro:</strong> ${prestamo.libroTitulo}</p>
-                            <p><strong>ISBN:</strong> ${prestamo.isbn || 'N/A'}</p>
-                            <p><strong>Fecha Préstamo:</strong> ${new Date(prestamo.fechaPrestamo).toLocaleDateString()}</p>
-                            <p><strong>Fecha Devolución Planeada:</strong> ${new Date(prestamo.fechaDevolucion).toLocaleDateString()}</p>
-                            <p><strong>Tipo Préstamo:</strong> ${prestamo.tipoPrestamo || 'Estándar'}</p>
-                            <hr>
-                            <p><strong>Instrucciones:</strong> Por favor devuelve el libro en la fecha indicada para evitar sanciones.</p>
-                        </div>
-                    `;
-                }
-                if (modal) modal.style.display = 'flex';
-            }
-
-            async function mostrarSeccionPrestamos() {
-                await cargarPrestamosActivos();
-                renderizarPrestamosActivos();
-                if (prestamosActivosSection) {
-                    prestamosActivosSection.style.display = 'block';
-                    prestamosActivosSection.scrollIntoView({ behavior: 'smooth' });
-                }
-            }
-
-            function ocultarSeccionPrestamos() {
-                if (prestamosActivosSection) {
-                    prestamosActivosSection.style.display = 'none';
-                }
-            }
-
-            function filterBooks() {
-                const searchTerm = searchInput?.value.toLowerCase().trim() || '';
-                const tableRows = document.querySelectorAll('#booksTable tbody tr');
-                const gridCards = document.querySelectorAll('.book-card');
-                let matchCount = 0;
-
-                tableRows.forEach(row => {
-                    const title = row.getAttribute('data-title') || '';
-                    const isbn = row.getAttribute('data-isbn') || '';
-                    const matches = searchTerm === '' || title.includes(searchTerm) || isbn.includes(searchTerm);
-                    row.style.display = matches ? '' : 'none';
-                    if (matches) matchCount++;
-                });
-
-                gridCards.forEach(card => {
-                    const title = card.getAttribute('data-title') || '';
-                    const isbn = card.getAttribute('data-isbn') || '';
-                    const matches = searchTerm === '' || title.includes(searchTerm) || isbn.includes(searchTerm);
-                    card.style.display = matches ? '' : 'none';
-                });
-
-                if (clearBtn) {
-                    clearBtn.style.display = searchTerm ? 'flex' : 'none';
-                }
-
-                if (searchStats) {
-                    searchStats.textContent = searchTerm === '' ? '' : `${matchCount} resultado${matchCount !== 1 ? 's' : ''}`;
-                }
-
-                updateAvailableCount();
-            }
-
-            function clearSearch() {
-                if (searchInput) {
-                    searchInput.value = '';
-                    filterBooks();
-                    searchInput.focus();
-                }
-            }
-
-            function setView(view) {
-                if (view === 'table') {
-                    tableView.style.display = 'block';
-                    gridView.style.display = 'none';
-                    tableViewBtn.classList.add('active');
-                    gridViewBtn.classList.remove('active');
-                    localStorage.setItem('bibliotechView', 'table');
-                } else {
-                    tableView.style.display = 'none';
-                    gridView.style.display = 'block';
-                    tableViewBtn.classList.remove('active');
-                    gridViewBtn.classList.add('active');
-                    localStorage.setItem('bibliotechView', 'grid');
-                }
-                filterBooks();
-            }
-
-            async function postSolicitar(libroId, button, titulo) {
-                const token = getAntiForgeryToken();
-                const originalText = button.innerHTML;
-                
-                try {
-                    button.disabled = true;
-                    button.innerHTML = '<i class="bi bi-hourglass-split"></i> Procesando...';
-                    
-                    const resp = await fetch('?handler=SolicitarPrestamoAjax', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'RequestVerificationToken': token
-                        },
-                        body: JSON.stringify({ libroId: libroId })
-                    });
-
-                    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                    const data = await resp.json();
-
-                    if (data.success) {
-                        showToast(`✅ ¡Solicitud exitosa! El libro "${titulo}" ha sido reservado.`, false);
-                        
-                        const allButtons = document.querySelectorAll(`.btn-prestar[data-libroid="${libroId}"], .btn-prestar-card[data-libroid="${libroId}"]`);
-                        const allRows = document.querySelectorAll(`tr[data-libroid="${libroId}"]`);
-                        const allCards = document.querySelectorAll(`.book-card[data-libroid="${libroId}"]`);
-                        
-                        allRows.forEach(row => {
-                            const available = data.available;
-                            row.dataset.available = available;
-                            const badge = row.querySelector('.badge');
-                            const totalSpan = row.querySelector('.total-copies');
-                            
-                            if (available > 0) {
-                                if (badge) {
-                                    badge.className = 'badge available';
-                                    badge.innerHTML = `<i class="bi bi-check-circle-fill"></i> ${available} disponible(s)`;
-                                }
-                            } else {
-                                if (badge) {
-                                    badge.className = 'badge out';
-                                    badge.innerHTML = '<i class="bi bi-x-circle-fill"></i> Sin stock';
-                                }
-                            }
-                            
-                            const buttonInRow = row.querySelector('.btn-prestar');
-                            if (buttonInRow) buttonInRow.disabled = available <= 0;
-                        });
-                        
-                        allCards.forEach(card => {
-                            const available = data.available;
-                            card.dataset.available = available;
-                            const badge = card.querySelector('.badge');
-                            
-                            if (available > 0) {
-                                if (badge) {
-                                    badge.className = 'badge available';
-                                    badge.innerHTML = `<i class="bi bi-check-circle-fill"></i> ${available} disponibles`;
-                                }
-                            } else {
-                                if (badge) {
-                                    badge.className = 'badge out';
-                                    badge.innerHTML = '<i class="bi bi-x-circle-fill"></i> Sin stock';
-                                }
-                            }
-                            
-                            const buttonInCard = card.querySelector('.btn-prestar-card');
-                            if (buttonInCard) buttonInCard.disabled = available <= 0;
-                        });
-                        
-                        updateAvailableCount();
-                        await cargarPrestamosActivos();
-                        if (prestamosActivosSection && prestamosActivosSection.style.display === 'block') {
-                            renderizarPrestamosActivos();
-                        }
-                        if (prestamosActivosCountSpan) {
-                            prestamosActivosCountSpan.textContent = prestamosActivos.length;
-                        }
-                    } else {
-                        showToast(data.message || '❌ No se pudo completar la solicitud', true);
-                        button.disabled = false;
-                        button.innerHTML = originalText;
-                    }
-                } catch (err) {
-                    console.error(err);
-                    showToast('❌ Error de conexión. Intenta nuevamente.', true);
-                    button.disabled = false;
-                    button.innerHTML = originalText;
-                }
-            }
-
-            document.addEventListener('click', function (e) {
-                const btn = e.target.closest('.btn-prestar');
-                if (btn && !btn.disabled) {
-                    e.preventDefault();
-                    const libId = parseInt(btn.dataset.libroid);
-                    const titulo = btn.dataset.titulo || 'este libro';
-                    if (!libId) return;
-                    if (confirm(`¿Deseas solicitar el libro "${titulo}"?`)) {
-                        postSolicitar(libId, btn, titulo);
-                    }
-                }
-            });
-
-            document.addEventListener('click', function (e) {
-                const btn = e.target.closest('.btn-prestar-card');
-                if (btn && !btn.disabled) {
-                    e.preventDefault();
-                    const libId = parseInt(btn.dataset.libroid);
-                    const titulo = btn.dataset.titulo || 'este libro';
-                    if (!libId) return;
-                    if (confirm(`¿Deseas solicitar el libro "${titulo}"?`)) {
-                        postSolicitar(libId, btn, titulo);
-                    }
-                }
-            });
-
-            if (searchInput) {
-                searchInput.addEventListener('input', filterBooks);
-                searchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') filterBooks();
-                });
-            }
-            
-            if (clearBtn) {
-                clearBtn.addEventListener('click', clearSearch);
-            }
-
-            if (tableViewBtn) {
-                tableViewBtn.addEventListener('click', () => setView('table'));
-            }
-            if (gridViewBtn) {
-                gridViewBtn.addEventListener('click', () => setView('grid'));
-            }
-
-            if (prestamosActivosCard) {
-                prestamosActivosCard.addEventListener('click', mostrarSeccionPrestamos);
-            }
-            if (verMisPrestamosBtn) {
-                verMisPrestamosBtn.addEventListener('click', mostrarSeccionPrestamos);
-            }
-            if (cerrarPrestamosBtn) {
-                cerrarPrestamosBtn.addEventListener('click', ocultarSeccionPrestamos);
-            }
-
-            window.onclick = function(event) {
-                if (event.target === modal) {
-                    modal.style.display = 'none';
-                }
-            }
-
-            const savedView = localStorage.getItem('bibliotechView');
-            if (savedView === 'grid') {
-                setView('grid');
-            } else {
-                setView('table');
-            }
-
-            updateAvailableCount();
-            cargarPrestamosActivos();
-        })();
-    </script>
+    <script src="~/js/cliente-busqueda.js"></script>
+    <script src="~/js/cliente-prestamos.js"></script>
+    <script src="~/js/cliente-app.js"></script>
 }

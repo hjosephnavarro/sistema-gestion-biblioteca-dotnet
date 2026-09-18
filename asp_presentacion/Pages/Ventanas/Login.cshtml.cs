@@ -15,7 +15,6 @@ namespace asp_presentacion.Pages.Ventanas
             _usuariosPresentacion = usuariosPresentacion;
         }
 
-        // ===== Bind properties =====
         [BindProperty] public string? LoginCorreo { get; set; }
         [BindProperty] public string? LoginPassword { get; set; }
         [BindProperty] public string LoginRol { get; set; } = "";
@@ -49,6 +48,10 @@ namespace asp_presentacion.Pages.Ventanas
                     var rolSesion = HttpContext.Session.GetString("UsuarioRol");
                     if (string.IsNullOrWhiteSpace(rolSesion))
                         HttpContext.Session.SetString("UsuarioRol", UsuarioLogueado.Rol ?? "");
+                    
+                    var nombreSesion = HttpContext.Session.GetString("UsuarioNombre");
+                    if (string.IsNullOrWhiteSpace(nombreSesion))
+                        HttpContext.Session.SetString("UsuarioNombre", UsuarioLogueado.Nombre ?? "");
                 }
             }
         }
@@ -85,21 +88,31 @@ namespace asp_presentacion.Pages.Ventanas
                 return Page();
             }
 
+            // GUARDAR TODOS LOS DATOS EN SESSION
             HttpContext.Session.SetInt32("UsuarioId", user.Id);
             HttpContext.Session.SetString("UsuarioRol", user.Rol ?? "");
+            HttpContext.Session.SetString("UsuarioNombre", user.Nombre ?? "");
+            HttpContext.Session.SetString("UsuarioCorreo", user.Correo ?? "");
+            HttpContext.Session.SetString("UsuarioDocumento", user.Documento ?? "");
 
-            return user.Rol == "admin"
-                ? RedirectToPage("/Ventanas/Admin")
-                : RedirectToPage("/Ventanas/Cliente");
+           if (user.Rol == "admin")
+            {
+                return RedirectToPage("/Ventanas/Admin");
+            }
+            else
+            {
+                return RedirectToPage("/Ventanas/Cliente");
+            }
         }
 
         // LOGOUT
         public async Task<IActionResult> OnPostLogout()
         {
+            // LIMPIAR TODA LA SESIÓN
             HttpContext.Session.Clear();
             ViewData["Mensaje"] = "Sesión cerrada.";
             await CargarSesion();
-            return Page();
+            return RedirectToPage("/Ventanas/Login");
         }
 
         // REGISTRO

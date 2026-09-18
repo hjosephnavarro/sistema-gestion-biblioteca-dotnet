@@ -4,9 +4,6 @@ using Dominio.Entidades;
 
 namespace asp_presentacion.Pages
 {
-    // TODA ESTA PARTE DEL INDEX MUESTRA EN LA PAGINA PRINCIPAL LISTAS DE LIBROS, AUTORES Y USUARIOS
-    // USA INTERFACES PARA INYECTAR LOS SERVICIOS CORRESPONDIENTES Y MOSTRARLOS EN [ index.cshtml ]
-
     public class IndexModel : PageModel
     {
         private readonly IUsuariosPresentacion _usuariosPresentacion;
@@ -33,9 +30,8 @@ namespace asp_presentacion.Pages
             {
                 ListaLibros = await _librosPresentacion.Listar() ?? new List<Libros>();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                
                 ListaLibros = new List<Libros>();
             }
 

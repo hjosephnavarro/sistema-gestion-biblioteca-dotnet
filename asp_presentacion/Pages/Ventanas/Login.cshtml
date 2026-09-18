@@ -360,5 +360,29 @@
         applySavedTheme();
         syncThemeWithLayout();
         listenToThemeChanges();
+
+        // FORZAR ACTUALIZACIÓN DESPUÉS DEL LOGIN
+        // Verificar si venimos de un login exitoso
+        if (window.location.search.includes('loginSuccess=true')) {
+            // Eliminar el parámetro de la URL y recargar
+            window.history.replaceState({}, document.title, window.location.pathname);
+            location.reload();
+        }
+
+        // Verificar el estado de la sesión cada 5 segundos
+        function checkSessionStatus() {
+            fetch('/Ventanas/Cliente?handler=CheckSession')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.isLoggedIn && !data.userName) {
+                        // Si hay sesión pero no nombre, recargar
+                        location.reload();
+                    }
+                })
+                .catch(() => {});
+        }
+
+        setInterval(checkSessionStatus, 5000);
+
     </script>
 }

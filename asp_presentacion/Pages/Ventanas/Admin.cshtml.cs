@@ -1,4 +1,3 @@
-// Admin.cshtml.cs
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Http;
@@ -23,6 +22,9 @@ namespace asp_presentacion.Pages.Ventanas
         private readonly ILibrosAutoresPresentacion _librosAutoresPresentacion;
         private readonly ILibrosTemasPresentacion _librosTemasPresentacion;
 
+        public int UsuarioId { get; set; }
+
+        // CONSTRUCTOR
         public AdminModel(
             IUsuariosPresentacion usuariosPresentacion,
             ILibrosPresentacion librosPresentacion,
@@ -53,6 +55,7 @@ namespace asp_presentacion.Pages.Ventanas
             _librosTemasPresentacion = librosTemasPresentacion;
         }
 
+        // PROPIEDADES PÚBLICAS (LISTAS)
         public List<Autores> Autores { get; set; } = new();
         public List<Editoriales> Editoriales { get; set; } = new();
         public List<Libros> Libros { get; set; } = new();
@@ -64,9 +67,11 @@ namespace asp_presentacion.Pages.Ventanas
         public List<Tipos> TiposLibro { get; set; } = new();
         public List<TiposPrestamos> TiposPrestamos { get; set; } = new();
         public List<Usuarios> Usuarios { get; set; } = new();
+        public List<Usuarios> UsuariosTodos { get; set; } = new();
         public List<LibrosAutores> LibrosAutores { get; set; } = new();
         public List<LibrosTemas> LibrosTemas { get; set; } = new();
 
+        // BINDPROPERTY (NUEVAS ENTIDADES)
         [BindProperty] public Autores NewAutor { get; set; } = new();
         [BindProperty] public Editoriales NewEditorial { get; set; } = new();
         [BindProperty] public Libros NewLibro { get; set; } = new();
@@ -74,17 +79,28 @@ namespace asp_presentacion.Pages.Ventanas
         [BindProperty] public Existencias NewExistencia { get; set; } = new();
         [BindProperty] public Prestamos NewPrestamo { get; set; } = new();
         [BindProperty] public Sanciones NewSancion { get; set; } = new();
+        [BindProperty] public Usuarios NewUsuario { get; set; } = new();
 
+
+        // MÉTODOS
+
+
+        // GET - Carga inicial
         public async Task<IActionResult> OnGetAsync()
         {
             int? userId = HttpContext.Session.GetInt32("UsuarioId");
             if (userId == null) return RedirectToPage("/Ventanas/Login");
             
+            UsuarioId = userId.Value;
+
             try
             {
                 var usuarios = await _usuariosPresentacion.Listar();
                 var usuario = usuarios?.FirstOrDefault(u => u.Id == userId);
-                if (usuario?.Rol != "admin") return RedirectToPage("/Ventanas/Cliente");
+                if (usuario?.Rol != "admin") 
+                    return RedirectToPage("/Ventanas/Cliente");
+                
+                HttpContext.Session.SetString("UsuarioNombre", usuario.Nombre ?? "");
             }
             catch
             {
@@ -95,59 +111,32 @@ namespace asp_presentacion.Pages.Ventanas
             return Page();
         }
 
-        // Admin.cshtml.cs - Reemplazar el método CargarDatos()
+        // CARGAR DATOS
         private async Task CargarDatos()
         {
-            var autores = await _autoresPresentacion.Listar();
-            Autores = autores?.ToList() ?? new();
-            
-            var editoriales = await _editorialesPresentacion.Listar();
-            Editoriales = editoriales?.ToList() ?? new();
-            
-            var libros = await _librosPresentacion.Listar();
-            Libros = libros?.ToList() ?? new();
-            
-            var temas = await _temasPresentacion.Listar();
-            Temas = temas?.ToList() ?? new();
-            
-            var existencias = await _existenciasPresentacion.Listar();
-            Existencias = existencias?.ToList() ?? new();
-            
-            var prestamos = await _prestamosPresentacion.Listar();
-            Prestamos = prestamos?.ToList() ?? new();
-            
-            // Manejar error de Sanciones
-            try
-            {
-                var sanciones = await _sancionesPresentacion.Listar();
-                Sanciones = sanciones?.ToList() ?? new();
-            }
-            catch (Exception ex)
-            {
-                Sanciones = new List<Sanciones>();
-                Console.WriteLine($"Error al cargar sanciones: {ex.Message}");
-            }
-            
-            var paises = await _paisesPresentacion.Listar();
-            Paises = paises?.ToList() ?? new();
-            
-            var tipos = await _tiposPresentacion.Listar();
-            TiposLibro = tipos?.ToList() ?? new();
-            
-            var tiposPrestamos = await _tiposPrestamosPresentacion.Listar();
-            TiposPrestamos = tiposPrestamos?.ToList() ?? new();
-            
-            var usuarios = await _usuariosPresentacion.Listar();
-            Usuarios = usuarios?.Where(u => u.Rol == "usuario").ToList() ?? new();
-            
-            var librosAutores = await _librosAutoresPresentacion.Listar();
-            LibrosAutores = librosAutores?.ToList() ?? new();
-            
-            var librosTemas = await _librosTemasPresentacion.Listar();
-            LibrosTemas = librosTemas?.ToList() ?? new();
+            try { Autores = (await _autoresPresentacion.Listar())?.ToList() ?? new(); } catch { Autores = new(); }
+            try { Editoriales = (await _editorialesPresentacion.Listar())?.ToList() ?? new(); } catch { Editoriales = new(); }
+            try { Libros = (await _librosPresentacion.Listar())?.ToList() ?? new(); } catch { Libros = new(); }
+            try { Temas = (await _temasPresentacion.Listar())?.ToList() ?? new(); } catch { Temas = new(); }
+            try { Existencias = (await _existenciasPresentacion.Listar())?.ToList() ?? new(); } catch { Existencias = new(); }
+            try { Prestamos = (await _prestamosPresentacion.Listar())?.ToList() ?? new(); } catch { Prestamos = new(); }
+            try { Sanciones = (await _sancionesPresentacion.Listar())?.ToList() ?? new(); } catch { Sanciones = new(); }
+            try { Paises = (await _paisesPresentacion.Listar())?.ToList() ?? new(); } catch { Paises = new(); }
+            try { TiposLibro = (await _tiposPresentacion.Listar())?.ToList() ?? new(); } catch { TiposLibro = new(); }
+            try { TiposPrestamos = (await _tiposPrestamosPresentacion.Listar())?.ToList() ?? new(); } catch { TiposPrestamos = new(); }
+            try 
+            { 
+                UsuariosTodos = (await _usuariosPresentacion.Listar())?.ToList() ?? new();
+                Usuarios = UsuariosTodos?.Where(u => u.Rol == "usuario").ToList() ?? new();
+            } 
+            catch { Usuarios = new(); UsuariosTodos = new(); }
+            try { LibrosAutores = (await _librosAutoresPresentacion.Listar())?.ToList() ?? new(); } catch { LibrosAutores = new(); }
+            try { LibrosTemas = (await _librosTemasPresentacion.Listar())?.ToList() ?? new(); } catch { LibrosTemas = new(); }
         }
 
-        // LIBROS
+
+        // CRUD - LIBROS
+
         public async Task<IActionResult> OnPostAddLibroAsync()
         {
             if (!string.IsNullOrEmpty(NewLibro.Titulo))
@@ -188,8 +177,15 @@ namespace asp_presentacion.Pages.Ventanas
             var libro = Libros.FirstOrDefault(l => l.Id == id);
             if (libro != null)
             {
-                await _librosPresentacion.Borrar(libro);
-                TempData["OK"] = "Libro eliminado";
+                try
+                {
+                    await _librosPresentacion.Borrar(libro);
+                    TempData["OK"] = "Libro eliminado";
+                }
+                catch (Exception ex)
+                {
+                    TempData["Error"] = "No se puede eliminar el libro: " + ex.Message;
+                }
             }
             await CargarDatos();
             return Page();
@@ -206,7 +202,7 @@ namespace asp_presentacion.Pages.Ventanas
             }
             else
             {
-                TempData["Error"] = "Este autor ya está asignado a este libro";
+                TempData["Error"] = "Este autor ya esta asignado a este libro";
             }
             await CargarDatos();
             return Page();
@@ -223,13 +219,15 @@ namespace asp_presentacion.Pages.Ventanas
             }
             else
             {
-                TempData["Error"] = "Este tema ya está asignado a este libro";
+                TempData["Error"] = "Este tema ya esta asignado a este libro";
             }
             await CargarDatos();
             return Page();
         }
 
-        // AUTORES
+
+        // CRUD - AUTORES
+
         public async Task<IActionResult> OnPostAddAutorAsync()
         {
             if (!string.IsNullOrEmpty(NewAutor.Nombre))
@@ -260,14 +258,23 @@ namespace asp_presentacion.Pages.Ventanas
             var autor = Autores.FirstOrDefault(a => a.Id == id);
             if (autor != null)
             {
-                await _autoresPresentacion.Borrar(autor);
-                TempData["OK"] = "Autor eliminado";
+                try
+                {
+                    await _autoresPresentacion.Borrar(autor);
+                    TempData["OK"] = "Autor eliminado";
+                }
+                catch
+                {
+                    TempData["Error"] = "No se puede eliminar el autor porque tiene libros asociados";
+                }
             }
             await CargarDatos();
             return Page();
         }
 
-        // EDITORIALES
+
+        // CRUD - EDITORIALES
+
         public async Task<IActionResult> OnPostAddEditorialAsync()
         {
             if (!string.IsNullOrEmpty(NewEditorial.Nombre_Editorial))
@@ -298,14 +305,23 @@ namespace asp_presentacion.Pages.Ventanas
             var editorial = Editoriales.FirstOrDefault(e => e.Id == id);
             if (editorial != null)
             {
-                await _editorialesPresentacion.Borrar(editorial);
-                TempData["OK"] = "Editorial eliminada";
+                try
+                {
+                    await _editorialesPresentacion.Borrar(editorial);
+                    TempData["OK"] = "Editorial eliminada";
+                }
+                catch
+                {
+                    TempData["Error"] = "No se puede eliminar la editorial porque tiene libros asociados";
+                }
             }
             await CargarDatos();
             return Page();
         }
 
-        // TEMAS
+
+        // CRUD - TEMAS
+
         public async Task<IActionResult> OnPostAddTemaAsync()
         {
             if (!string.IsNullOrEmpty(NewTema.Nombre_Tema))
@@ -336,14 +352,23 @@ namespace asp_presentacion.Pages.Ventanas
             var tema = Temas.FirstOrDefault(t => t.Id == id);
             if (tema != null)
             {
-                await _temasPresentacion.Borrar(tema);
-                TempData["OK"] = "Tema eliminado";
+                try
+                {
+                    await _temasPresentacion.Borrar(tema);
+                    TempData["OK"] = "Tema eliminado";
+                }
+                catch
+                {
+                    TempData["Error"] = "No se puede eliminar el tema porque tiene libros asociados";
+                }
             }
             await CargarDatos();
             return Page();
         }
 
-        // EXISTENCIAS
+
+        // CRUD - EXISTENCIAS
+
         public async Task<IActionResult> OnPostAddExistenciaAsync()
         {
             if (NewExistencia.Libro > 0 && NewExistencia.Ejemplares > 0)
@@ -383,14 +408,23 @@ namespace asp_presentacion.Pages.Ventanas
             var existencia = Existencias.FirstOrDefault(e => e.Id == id);
             if (existencia != null)
             {
-                await _existenciasPresentacion.Borrar(existencia);
-                TempData["OK"] = "Existencia eliminada";
+                try
+                {
+                    await _existenciasPresentacion.Borrar(existencia);
+                    TempData["OK"] = "Existencia eliminada";
+                }
+                catch
+                {
+                    TempData["Error"] = "No se puede eliminar la existencia porque tiene prestamos asociados";
+                }
             }
             await CargarDatos();
             return Page();
         }
 
-        // PRESTAMOS
+
+        // CRUD - PRESTAMOS
+
         public async Task<IActionResult> OnPostAddPrestamoAsync()
         {
             if (NewPrestamo.Usuario > 0 && NewPrestamo.Existencia > 0)
@@ -404,7 +438,7 @@ namespace asp_presentacion.Pages.Ventanas
                     
                     existencia.Ejemplares -= 1;
                     await _existenciasPresentacion.Modificar(existencia);
-                    TempData["OK"] = "Préstamo registrado";
+                    TempData["OK"] = "Prestamo registrado";
                 }
                 else
                 {
@@ -429,7 +463,7 @@ namespace asp_presentacion.Pages.Ventanas
                     existencia.Ejemplares += 1;
                     await _existenciasPresentacion.Modificar(existencia);
                 }
-                TempData["OK"] = "Devolución registrada";
+                TempData["OK"] = "Devolucion registrada";
             }
             await CargarDatos();
             return Page();
@@ -440,14 +474,80 @@ namespace asp_presentacion.Pages.Ventanas
             var prestamo = Prestamos.FirstOrDefault(p => p.Id == id);
             if (prestamo != null)
             {
-                await _prestamosPresentacion.Borrar(prestamo);
-                TempData["OK"] = "Préstamo eliminado";
+                try
+                {
+                    await _prestamosPresentacion.Borrar(prestamo);
+                    TempData["OK"] = "Prestamo eliminado";
+                }
+                catch
+                {
+                    TempData["Error"] = "No se puede eliminar el prestamo";
+                }
             }
             await CargarDatos();
             return Page();
         }
 
-        // SANCIONES
+
+        // CRUD - USUARIOS
+
+        public async Task<IActionResult> OnPostAddUsuarioAsync()
+        {
+            if (!string.IsNullOrEmpty(NewUsuario.Nombre) && !string.IsNullOrEmpty(NewUsuario.Correo))
+            {
+                try
+                {
+                    var existe = (await _usuariosPresentacion.Listar())?.Any(u => u.Correo == NewUsuario.Correo);
+                    if (existe == true)
+                    {
+                        TempData["Error"] = "El correo ya esta registrado";
+                    }
+                    else
+                    {
+                        NewUsuario.Rol = string.IsNullOrEmpty(NewUsuario.Rol) ? "usuario" : NewUsuario.Rol;
+                        await _usuariosPresentacion.Guardar(NewUsuario);
+                        TempData["OK"] = "Usuario agregado correctamente";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["Error"] = "Error: " + ex.Message;
+                }
+            }
+            else
+            {
+                TempData["Error"] = "Nombre y correo son obligatorios";
+            }
+            await CargarDatos();
+            return Page();
+        }
+
+        public async Task<IActionResult> OnPostDeleteUsuarioAsync(int id)
+        {
+            var usuario = UsuariosTodos.FirstOrDefault(u => u.Id == id);
+            if (usuario != null && usuario.Rol != "admin")
+            {
+                try
+                {
+                    await _usuariosPresentacion.Borrar(usuario);
+                    TempData["OK"] = "Usuario eliminado";
+                }
+                catch
+                {
+                    TempData["Error"] = "No se puede eliminar el usuario";
+                }
+            }
+            else
+            {
+                TempData["Error"] = "No se puede eliminar un administrador";
+            }
+            await CargarDatos();
+            return Page();
+        }
+
+
+        // CRUD - SANCIONES
+
         public async Task<IActionResult> OnPostAddSancionAsync()
         {
             if (NewSancion.Usuario > 0 && !string.IsNullOrEmpty(NewSancion.Descripcion))
@@ -455,7 +555,7 @@ namespace asp_presentacion.Pages.Ventanas
                 if (NewSancion.Fecha_Inicio == default)
                     NewSancion.Fecha_Inicio = DateTime.Now;
                 await _sancionesPresentacion.Guardar(NewSancion);
-                TempData["OK"] = "Sanción aplicada";
+                TempData["OK"] = "Sancion aplicada";
             }
             await CargarDatos();
             return Page();
@@ -467,13 +567,14 @@ namespace asp_presentacion.Pages.Ventanas
             if (sancion != null)
             {
                 await _sancionesPresentacion.Borrar(sancion);
-                TempData["OK"] = "Sanción eliminada";
+                TempData["OK"] = "Sancion eliminada";
             }
             await CargarDatos();
             return Page();
         }
 
-        public async Task<IActionResult> OnPostLogoutAsync()
+        // LOGOUT
+        public IActionResult OnPostLogout()
         {
             HttpContext.Session.Clear();
             return RedirectToPage("/Ventanas/Login");

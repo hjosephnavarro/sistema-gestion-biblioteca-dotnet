@@ -1,3 +1,4 @@
+using Dominio.Nucleo;
 using Dominio.Entidades;
 using Presentaciones.Interfaces;
 
@@ -5,76 +6,159 @@ namespace Presentaciones.Implementaciones
 {
     public class SancionesPresentacion : ISancionesPresentacion
     {
-        private static List<Sanciones> _sancionesLocal = new List<Sanciones>();
-        private static int _nextId = 1;
+        private Comunicaciones? comunicaciones = null;
+        private readonly AuditoriasPresentacion auditor = new AuditoriasPresentacion();
 
         public async Task<List<Sanciones>> Listar()
         {
-            return await Task.FromResult(_sancionesLocal);
+            var lista = new List<Sanciones>();
+            var datos = new Dictionary<string, object>();
+
+            comunicaciones = new Comunicaciones();
+            datos = comunicaciones.ConstruirUrl(datos, "Sanciones/Listar");
+            var respuesta = await comunicaciones!.Ejecutar(datos);
+
+            if (respuesta.ContainsKey("Error"))
+                throw new Exception(respuesta["Error"].ToString()!);
+
+            lista = JsonConversor.ConvertirAObjeto<List<Sanciones>>(
+                JsonConversor.ConvertirAString(respuesta["Entidades"]));
+
+            await auditor.RegistrarAsync(new Auditorias
+            {
+                Entidad = "Sanciones",
+                Accion = "Listar",
+                UsuarioAccion = "Sistema",
+                DatosAntes = null,
+                DatosDespues = $"Se listaron {lista.Count} Sanciones.",
+                FechaAccion = DateTime.Now
+            });
+
+            return lista;
         }
 
         public async Task<List<Sanciones>> PorSanciones(Sanciones? entidad)
         {
-            if (entidad == null) 
-                return await Task.FromResult(_sancionesLocal);
-            
-            var resultado = _sancionesLocal.Where(s => 
-                (entidad.Id == 0 || s.Id == entidad.Id) &&
-                (entidad.Usuario == 0 || s.Usuario == entidad.Usuario)
-            ).ToList();
-            
-            return await Task.FromResult(resultado);
+            var datos = new Dictionary<string, object>();
+            datos["Entidad"] = entidad!;
+
+            comunicaciones = new Comunicaciones();
+            datos = comunicaciones.ConstruirUrl(datos, "Sanciones/PorSanciones");
+            var respuesta = await comunicaciones!.Ejecutar(datos);
+
+            if (respuesta.ContainsKey("Error"))
+                throw new Exception(respuesta["Error"].ToString()!);
+
+            var lista = JsonConversor.ConvertirAObjeto<List<Sanciones>>(
+                JsonConversor.ConvertirAString(respuesta["Entidades"]));
+
+            await auditor.RegistrarAsync(new Auditorias
+            {
+                Entidad = "Sanciones",
+                Accion = "Consulta por usuario",
+                UsuarioAccion = "Sistema",
+                DatosAntes = JsonConversor.ConvertirAString(entidad),
+                DatosDespues = $"Resultado: {lista.Count} registros.",
+                FechaAccion = DateTime.Now
+            });
+
+            return lista;
         }
 
         public async Task<Sanciones?> Guardar(Sanciones? entidad)
         {
-            if (entidad == null) 
-                return null;
-            
-            if (entidad.Id != 0) 
+            if (entidad!.Id != 0)
                 throw new Exception("lbFaltaInformacion");
 
-            entidad.Id = _nextId++;
-            _sancionesLocal.Add(entidad);
-            
-            return await Task.FromResult(entidad);
+            var datos = new Dictionary<string, object>();
+            datos["Entidad"] = entidad;
+
+            comunicaciones = new Comunicaciones();
+            datos = comunicaciones.ConstruirUrl(datos, "Sanciones/Guardar");
+            var respuesta = await comunicaciones!.Ejecutar(datos);
+
+            if (respuesta.ContainsKey("Error"))
+                throw new Exception(respuesta["Error"].ToString()!);
+
+            entidad = JsonConversor.ConvertirAObjeto<Sanciones>(
+                JsonConversor.ConvertirAString(respuesta["Entidad"]));
+
+            await auditor.RegistrarAsync(new Auditorias
+            {
+                Entidad = "Sanciones",
+                EntidadId = entidad.Id,
+                Accion = "Guardar",
+                UsuarioAccion = "Sistema",
+                DatosAntes = null,
+                DatosDespues = JsonConversor.ConvertirAString(entidad),
+                FechaAccion = DateTime.Now
+            });
+
+            return entidad;
         }
 
         public async Task<Sanciones?> Modificar(Sanciones? entidad)
         {
-            if (entidad == null) 
-                return null;
-            
-            if (entidad.Id == 0) 
+            if (entidad!.Id == 0)
                 throw new Exception("lbFaltaInformacion");
 
-            var existente = _sancionesLocal.FirstOrDefault(s => s.Id == entidad.Id);
-            if (existente != null)
+            var datos = new Dictionary<string, object>();
+            datos["Entidad"] = entidad;
+
+            comunicaciones = new Comunicaciones();
+            datos = comunicaciones.ConstruirUrl(datos, "Sanciones/Modificar");
+            var respuesta = await comunicaciones!.Ejecutar(datos);
+
+            if (respuesta.ContainsKey("Error"))
+                throw new Exception(respuesta["Error"].ToString()!);
+
+            var entidadNueva = JsonConversor.ConvertirAObjeto<Sanciones>(
+                JsonConversor.ConvertirAString(respuesta["Entidad"]));
+
+            await auditor.RegistrarAsync(new Auditorias
             {
-                existente.Descripcion = entidad.Descripcion;
-                existente.Fecha_Inicio = entidad.Fecha_Inicio;
-                existente.Fecha_Fin = entidad.Fecha_Fin;
-                existente.Usuario = entidad.Usuario;
-            }
-            
-            return await Task.FromResult(entidad);
+                Entidad = "Sanciones",
+                EntidadId = entidadNueva.Id,
+                Accion = "Modificar",
+                UsuarioAccion = "Sistema",
+                DatosAntes = JsonConversor.ConvertirAString(entidad),
+                DatosDespues = JsonConversor.ConvertirAString(entidadNueva),
+                FechaAccion = DateTime.Now
+            });
+
+            return entidadNueva;
         }
 
         public async Task<Sanciones?> Borrar(Sanciones? entidad)
         {
-            if (entidad == null) 
-                return null;
-            
-            if (entidad.Id == 0) 
+            if (entidad!.Id == 0)
                 throw new Exception("lbFaltaInformacion");
 
-            var existente = _sancionesLocal.FirstOrDefault(s => s.Id == entidad.Id);
-            if (existente != null)
+            var datos = new Dictionary<string, object>();
+            datos["Entidad"] = entidad;
+
+            comunicaciones = new Comunicaciones();
+            datos = comunicaciones.ConstruirUrl(datos, "Sanciones/Borrar");
+            var respuesta = await comunicaciones!.Ejecutar(datos);
+
+            if (respuesta.ContainsKey("Error"))
+                throw new Exception(respuesta["Error"].ToString()!);
+
+            var resultado = JsonConversor.ConvertirAObjeto<Sanciones>(
+                JsonConversor.ConvertirAString(respuesta["Entidad"]));
+
+            await auditor.RegistrarAsync(new Auditorias
             {
-                _sancionesLocal.Remove(existente);
-            }
-            
-            return await Task.FromResult(entidad);
+                Entidad = "Sanciones",
+                EntidadId = resultado.Id,
+                Accion = "Borrar",
+                UsuarioAccion = "Sistema",
+                DatosAntes = JsonConversor.ConvertirAString(entidad),
+                DatosDespues = null,
+                FechaAccion = DateTime.Now
+            });
+
+            return resultado;
         }
     }
 }

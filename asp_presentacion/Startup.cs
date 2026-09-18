@@ -9,7 +9,7 @@ namespace asp_presentacion
         {
             Configuration = configuration;
         }
-        public static IConfiguration? Configuration { set; get; }
+        public static IConfiguration? Configuration { get; set; }
 
         public void ConfigureServices(WebApplicationBuilder builder, IServiceCollection services)
         {
@@ -31,20 +31,22 @@ namespace asp_presentacion
             services.AddScoped<ITiposPresentacion, TiposPresentacion>();
             services.AddScoped<IAuditoriasPresentacion, AuditoriasPresentacion>();
 
-            //services.AddScoped<IUsuariosRolesPresentacion, UsuariosRolesPresentacion>();
-            //services.AddScoped<IRolesPresentacion, RolesPresentacion>();
-            //services.AddScoped<IUsuariosPermisosPresentacion, UsuariosPermisosPresentacion>();
-
             // Servicios base
             services.AddControllers();
             services.AddEndpointsApiExplorer();
             services.AddRazorPages();
             
-            // Configuración de sesión
+            //  CONFIGURACIÓN DE SESIÓN
             services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
             });
+
+            //  AGREGAR AUTHENTICATION (necesario para User.Identity)
+            services.AddAuthentication();
+            services.AddAuthorization();
         }
 
         public void Configure(WebApplication app, IWebHostEnvironment env)
@@ -52,14 +54,22 @@ namespace asp_presentacion
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Error");
+                app.UseHsts();
             }
 
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
-            app.UseAuthorization();
-            app.UseSession();
+
+            // ORDEN CORRECTO DE MIDDLEWARE
+            app.UseAuthentication();  // Primero autenticación
+            app.UseAuthorization();   // Luego autorización
+            app.UseSession();         // Sesión después de autenticación
+
             app.MapRazorPages();
-            app.Run();
+            app.MapControllers();
+            
+
         }
     }
 }
